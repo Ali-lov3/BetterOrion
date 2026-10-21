@@ -968,6 +968,11 @@ function OrionLib:MakeNotification(NotificationConfig)
 		}), {
 			MakeElement("Stroke", Color3.fromRGB(40, 40, 46), 1),
 			MakeElement("Padding", 14, 14, 14, 14),
+			SetProps(MakeElement("Frame", CurrentAccent()), {
+				Size = UDim2.new(0, 2, 1, 8),
+				Position = UDim2.new(0, -9, 0, -4),
+				Name = "Bar"
+			}),
 			SetProps(MakeElement("Image", NotificationConfig.Image), {
 				Size = UDim2.new(0, 20, 0, 20),
 				ImageColor3 = Color3.fromRGB(240, 240, 240),
@@ -994,6 +999,7 @@ function OrionLib:MakeNotification(NotificationConfig)
 
 		wait(NotificationConfig.Time - 0.88)
 		TweenService:Create(NotificationFrame.Icon, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {ImageTransparency = 1}):Play()
+		TweenService:Create(NotificationFrame.Bar, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
 		TweenService:Create(NotificationFrame, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {BackgroundTransparency = 0.6}):Play()
 		wait(0.3)
 		TweenService:Create(NotificationFrame.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Transparency = 0.9}):Play()
@@ -1222,7 +1228,7 @@ function OrionLib:MakeWindow(WindowConfig)
 		BackgroundTransparency = 1,
 		Image = "rbxassetid://6014261993",
 		ImageColor3 = Color3.fromRGB(0, 0, 0),
-		ImageTransparency = 0.55,
+		ImageTransparency = 1,
 		ScaleType = Enum.ScaleType.Slice,
 		SliceCenter = Rect.new(49, 49, 450, 450),
 		ZIndex = 0,
@@ -1340,6 +1346,8 @@ function OrionLib:MakeWindow(WindowConfig)
 	if WindowConfig.IntroEnabled then
 		LoadSequence()
 	end
+
+	TweenService:Create(Shadow, TweenInfo.new(0.8, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0.55}):Play()
 
 	local SearchEntries = {}
 
@@ -1629,12 +1637,16 @@ function OrionLib:MakeWindow(WindowConfig)
 		end
 
 		AddConnection(TabFrame.MouseEnter, function()
+			TweenService:Create(TabFrame.Title, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(0, 45, 0, 0)}):Play()
+			TweenService:Create(TabFrame.Ico, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(0, 15, 0.5, 0)}):Play()
 			if TabFrame.Bg.BackgroundTransparency > 0.95 then
 				TweenService:Create(TabFrame.Bg, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0.94}):Play()
 			end
 		end)
 
 		AddConnection(TabFrame.MouseLeave, function()
+			TweenService:Create(TabFrame.Title, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(0, 42, 0, 0)}):Play()
+			TweenService:Create(TabFrame.Ico, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(0, 12, 0.5, 0)}):Play()
 			if TabFrame.Bg.BackgroundTransparency > 0.9 then
 				TweenService:Create(TabFrame.Bg, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
 			end
@@ -1893,6 +1905,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					TweenService:Create(ToggleBox.Stroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = Toggle.Value and OnColor or OrionLib.Themes[OrionLib.SelectedTheme].Stroke}):Play()
 					if ToggleConfig.Type == "Pill" then
 						TweenService:Create(ToggleBox.Knob, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+							Size = UDim2.new(0, 14, 0, 14),
 							Position = Toggle.Value and UDim2.new(1, -17, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
 							BackgroundColor3 = Toggle.Value and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(170, 170, 170)
 						}):Play()
@@ -1930,6 +1943,12 @@ function OrionLib:MakeWindow(WindowConfig)
 				end)
 
 				AddConnection(Click.MouseButton1Down, function()
+					if ToggleConfig.Type == "Pill" then
+						TweenService:Create(ToggleBox.Knob, TweenInfo.new(0.15, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+							Size = UDim2.new(0, 19, 0, 14),
+							Position = Toggle.Value and UDim2.new(1, -22, 0.5, 0) or UDim2.new(0, 3, 0.5, 0)
+						}):Play()
+					end
 					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
 				end)
 
@@ -2382,6 +2401,8 @@ function OrionLib:MakeWindow(WindowConfig)
 					end
 				end)
 
+				AddEdge(BindFrame, Click)
+
 				AddConnection(Click.MouseEnter, function()
 					TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
 				end)
@@ -2471,6 +2492,8 @@ function OrionLib:MakeWindow(WindowConfig)
 				end)
 
 				TextboxActual.Text = TextboxConfig.Default
+
+				AddEdge(TextboxFrame, Click)
 
 				AddConnection(Click.MouseEnter, function()
 					TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
@@ -3015,11 +3038,15 @@ function OrionLib:MakeWindow(WindowConfig)
 					Position = UDim2.new(0, 2, 0, 3),
 					Font = Enum.Font.BuilderSansBold
 				}), "TextDark"),
-				AddThemeObject(SetProps(MakeElement("Frame"), {
+				SetChildren(AddThemeObject(SetProps(MakeElement("Frame"), {
 					Size = UDim2.new(1, 0, 0, 1),
 					Position = UDim2.new(0, 0, 0, 20),
 					BackgroundTransparency = 0.35
-				}), "Stroke"),
+				}), "Stroke"), {
+					AddThemeObject(SetProps(MakeElement("Frame"), {
+						Size = UDim2.new(0, 20, 0, 1)
+					}), "Accent")
+				}),
 				SetChildren(SetProps(MakeElement("TFrame"), {
 					AnchorPoint = Vector2.new(0, 0),
 					Size = UDim2.new(1, 0, 1, -35),
