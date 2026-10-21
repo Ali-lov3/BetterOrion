@@ -10,7 +10,7 @@ local Window = OrionLib:MakeWindow({
 
 local ExampleTab = Window:MakeTab({
 	Name = "Example",
-	Icon = "rbxassetid://4483345998",
+	Icon = "home",
 	PremiumOnly = false
 })
 
@@ -86,6 +86,15 @@ ExampleSection:AddButton({
 			Content = "Example",
 			Time = 5
 		})
+	end
+})
+
+ExampleTab:AddMultiDropdown({
+	Name = "Multi Dropdown",
+	Default = {"One", "Two"},
+	Options = {"One", "Two", "Three", "Four"},
+	Callback = function(Values)
+		print(table.concat(Values, ", "))
 	end
 })
 

@@ -1335,6 +1335,170 @@ function OrionLib:MakeWindow(WindowConfig)
 				end
 				return Dropdown
 			end
+			function ElementFunction:AddMultiDropdown(DropdownConfig)
+				DropdownConfig = DropdownConfig or {}
+				DropdownConfig.Name = DropdownConfig.Name or "Multi Dropdown"
+				DropdownConfig.Options = DropdownConfig.Options or {}
+				DropdownConfig.Default = DropdownConfig.Default or {}
+				DropdownConfig.Callback = DropdownConfig.Callback or function() end
+				DropdownConfig.Flag = DropdownConfig.Flag or nil
+				DropdownConfig.Save = DropdownConfig.Save or false
+
+				local Dropdown = {Value = {}, Options = DropdownConfig.Options, Buttons = {}, Toggled = false, Type = "MultiDropdown", Save = DropdownConfig.Save}
+				local MaxElements = 5
+				local Selected = {}
+
+				local DropdownList = MakeElement("List")
+
+				local DropdownContainer = AddThemeObject(SetProps(SetChildren(MakeElement("ScrollFrame", Color3.fromRGB(40, 40, 40), 4), {
+					DropdownList
+				}), {
+					Parent = ItemParent,
+					Position = UDim2.new(0, 0, 0, 38),
+					Size = UDim2.new(1, 0, 1, -38),
+					ClipsDescendants = true
+				}), "Divider")
+
+				local Click = SetProps(MakeElement("Button"), {
+					Size = UDim2.new(1, 0, 1, 0)
+				})
+
+				local DropdownFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 5), {
+					Size = UDim2.new(1, 0, 0, 38),
+					Parent = ItemParent,
+					ClipsDescendants = true
+				}), {
+					DropdownContainer,
+					SetProps(SetChildren(MakeElement("TFrame"), {
+						AddThemeObject(SetProps(MakeElement("Label", DropdownConfig.Name, 15), {
+							Size = UDim2.new(1, -12, 1, 0),
+							Position = UDim2.new(0, 12, 0, 0),
+							Font = Enum.Font.GothamBold,
+							Name = "Content"
+						}), "Text"),
+						AddThemeObject(SetProps(MakeElement("Image", "rbxassetid://7072706796"), {
+							Size = UDim2.new(0, 20, 0, 20),
+							AnchorPoint = Vector2.new(0, 0.5),
+							Position = UDim2.new(1, -30, 0.5, 0),
+							ImageColor3 = Color3.fromRGB(240, 240, 240),
+							Name = "Ico"
+						}), "TextDark"),
+						AddThemeObject(SetProps(MakeElement("Label", "...", 13), {
+							Size = UDim2.new(1, -40, 1, 0),
+							Font = Enum.Font.Gotham,
+							Name = "Selected",
+							TextXAlignment = Enum.TextXAlignment.Right,
+							TextTruncate = Enum.TextTruncate.AtEnd
+						}), "TextDark"),
+						AddThemeObject(SetProps(MakeElement("Frame"), {
+							Size = UDim2.new(1, 0, 0, 1),
+							Position = UDim2.new(0, 0, 1, -1),
+							Name = "Line",
+							Visible = false
+						}), "Stroke"),
+						Click
+					}), {
+						Size = UDim2.new(1, 0, 0, 38),
+						ClipsDescendants = true,
+						Name = "F"
+					}),
+					AddThemeObject(MakeElement("Stroke"), "Stroke"),
+					MakeElement("Corner")
+				}), "Second")
+
+				AddConnection(DropdownList:GetPropertyChangedSignal("AbsoluteContentSize"), function()
+					DropdownContainer.CanvasSize = UDim2.new(0, 0, 0, DropdownList.AbsoluteContentSize.Y)
+				end)
+
+				local function Tween(Object, Props)
+					TweenService:Create(Object, TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), Props):Play()
+				end
+
+				local function Redraw()
+					local Values = {}
+					for _, Option in ipairs(Dropdown.Options) do
+						if Selected[Option] then
+							table.insert(Values, Option)
+						end
+					end
+					Dropdown.Value = Values
+					DropdownFrame.F.Selected.Text = #Values > 0 and table.concat(Values, ", ") or "..."
+					for Option, Button in pairs(Dropdown.Buttons) do
+						local On = Selected[Option] == true
+						Tween(Button, {BackgroundTransparency = On and 0 or 1})
+						Tween(Button.Title, {TextTransparency = On and 0 or 0.4})
+					end
+				end
+
+				local function AddOptions(Options)
+					for _, Option in pairs(Options) do
+						local OptionBtn = AddThemeObject(SetProps(SetChildren(MakeElement("Button", Color3.fromRGB(40, 40, 40)), {
+							MakeElement("Corner", 0, 6),
+							AddThemeObject(SetProps(MakeElement("Label", Option, 13, 0.4), {
+								Position = UDim2.new(0, 8, 0, 0),
+								Size = UDim2.new(1, -8, 1, 0),
+								Name = "Title"
+							}), "Text")
+						}), {
+							Parent = DropdownContainer,
+							Size = UDim2.new(1, 0, 0, 28),
+							BackgroundTransparency = 1,
+							ClipsDescendants = true
+						}), "Divider")
+
+						AddConnection(OptionBtn.MouseButton1Click, function()
+							Selected[Option] = not Selected[Option] or nil
+							Redraw()
+							DropdownConfig.Callback(Dropdown.Value)
+							SaveCfg(game.GameId)
+						end)
+
+						Dropdown.Buttons[Option] = OptionBtn
+					end
+				end
+
+				function Dropdown:Refresh(Options, Delete)
+					if Delete then
+						for _, v in pairs(Dropdown.Buttons) do
+							v:Destroy()
+						end
+						table.clear(Dropdown.Buttons)
+						table.clear(Selected)
+					end
+					Dropdown.Options = Options
+					AddOptions(Dropdown.Options)
+					Redraw()
+				end
+
+				function Dropdown:Set(Values)
+					table.clear(Selected)
+					if type(Values) == "string" then
+						Values = {Values}
+					end
+					for _, Value in pairs(Values or {}) do
+						if table.find(Dropdown.Options, Value) then
+							Selected[Value] = true
+						end
+					end
+					Redraw()
+					return DropdownConfig.Callback(Dropdown.Value)
+				end
+
+				AddConnection(Click.MouseButton1Click, function()
+					Dropdown.Toggled = not Dropdown.Toggled
+					DropdownFrame.F.Line.Visible = Dropdown.Toggled
+					Tween(DropdownFrame.F.Ico, {Rotation = Dropdown.Toggled and 180 or 0})
+					local Rows = math.min(#Dropdown.Options, MaxElements)
+					Tween(DropdownFrame, {Size = Dropdown.Toggled and UDim2.new(1, 0, 0, 38 + (Rows * 28)) or UDim2.new(1, 0, 0, 38)})
+				end)
+
+				Dropdown:Refresh(Dropdown.Options, false)
+				Dropdown:Set(DropdownConfig.Default)
+				if DropdownConfig.Flag then
+					OrionLib.Flags[DropdownConfig.Flag] = Dropdown
+				end
+				return Dropdown
+			end
 			function ElementFunction:AddBind(BindConfig)
 				BindConfig.Name = BindConfig.Name or "Bind"
 				BindConfig.Default = BindConfig.Default or Enum.KeyCode.Unknown
