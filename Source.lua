@@ -695,6 +695,18 @@ local function AccentSequence(Color)
 	return ColorSequence.new(Color)
 end
 
+local function AddHover(Frame, Hit)
+	local Stroke = Frame:FindFirstChildOfClass("UIStroke")
+	if not Stroke then return end
+	local Info = TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+	AddConnection(Hit.MouseEnter, function()
+		TweenService:Create(Stroke, Info, {Color = OrionLib.Themes[OrionLib.SelectedTheme].TextDark}):Play()
+	end)
+	AddConnection(Hit.MouseLeave, function()
+		TweenService:Create(Stroke, Info, {Color = OrionLib.Themes[OrionLib.SelectedTheme].Stroke}):Play()
+	end)
+end
+
 local function DropdownTween(Object, Props, Time)
 	TweenService:Create(Object, TweenInfo.new(Time or 0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), Props):Play()
 end
@@ -1543,6 +1555,8 @@ function OrionLib:MakeWindow(WindowConfig)
 					Click
 				}), "Second")
 
+				AddHover(ToggleFrame, Click)
+
 				local UseGradient = not CustomColor
 				local BoxGradient
 				local StrokeGradient
@@ -1682,6 +1696,8 @@ function OrionLib:MakeWindow(WindowConfig)
 					AddThemeObject(MakeElement("Stroke"), "Stroke"),
 					SliderBar
 				}), "Second")
+
+				AddHover(SliderFrame, SliderFrame)
 
 				local ActiveInput = nil
 
