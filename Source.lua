@@ -2714,7 +2714,7 @@ function OrionLib:MakeWindow(WindowConfig)
 			SectionConfig.Name = SectionConfig.Name or "Section"
 
 			local SectionFrame = SetChildren(SetProps(MakeElement("TFrame"), {
-				Size = UDim2.new(1, 0, 0, 26),
+				Size = UDim2.new(1, 0, 0, 37),
 				Parent = Container
 			}), {
 				AddThemeObject(SetProps(MakeElement("Label", string.upper(SectionConfig.Name), 11), {
@@ -2729,8 +2729,8 @@ function OrionLib:MakeWindow(WindowConfig)
 				}), "Stroke"),
 				SetChildren(SetProps(MakeElement("TFrame"), {
 					AnchorPoint = Vector2.new(0, 0),
-					Size = UDim2.new(1, 0, 1, -24),
-					Position = UDim2.new(0, 0, 0, 23),
+					Size = UDim2.new(1, 0, 1, -35),
+					Position = UDim2.new(0, 0, 0, 34),
 					Name = "Holder"
 				}), {
 					MakeElement("List", 0, 8)
@@ -2738,7 +2738,7 @@ function OrionLib:MakeWindow(WindowConfig)
 			})
 
 			AddConnection(SectionFrame.Holder.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
-				SectionFrame.Size = UDim2.new(1, 0, 0, SectionFrame.Holder.UIListLayout.AbsoluteContentSize.Y + 31)
+				SectionFrame.Size = UDim2.new(1, 0, 0, SectionFrame.Holder.UIListLayout.AbsoluteContentSize.Y + 42)
 				SectionFrame.Holder.Size = UDim2.new(1, 0, 0, SectionFrame.Holder.UIListLayout.AbsoluteContentSize.Y)
 			end)
 
