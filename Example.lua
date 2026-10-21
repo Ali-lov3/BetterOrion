@@ -1,10 +1,10 @@
-local OrionLib = loadstring(readfile("Source.lua"))()
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Ali-lov3/BetterOrion/refs/heads/main/Source.lua"))()
 
 local Window = OrionLib:MakeWindow({
-	Name = "Orion Mobile Example",
+	Name = "Example",
 	HidePremium = false,
 	SaveConfig = true,
-	ConfigFolder = "OrionMobileExample",
+	ConfigFolder = "Example",
 	IntroEnabled = false
 })
 
@@ -97,7 +97,7 @@ ControlsSection:AddButton({
 	Callback = function()
 		OrionLib:MakeNotification({
 			Name = "Hello",
-			Content = "Sliders and colorpickers now work with touch input.",
+			Content = "Example",
 			Time = 5
 		})
 	end
