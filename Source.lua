@@ -685,6 +685,15 @@ local function CurrentAccent()
 	return OrionLib.Themes[OrionLib.SelectedTheme].Accent
 end
 
+local function AccentPair(Color)
+	local H, S, V = Color3.toHSV(Color)
+	return Color3.fromHSV((H + 0.08) % 1, math.clamp(S * 0.9, 0, 1), math.clamp(V * 1.05 + 0.02, 0, 1))
+end
+
+local function AccentSequence(Color)
+	return ColorSequence.new(Color, AccentPair(Color))
+end
+
 local function DropdownTween(Object, Props, Time)
 	TweenService:Create(Object, TweenInfo.new(Time or 0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), Props):Play()
 end
@@ -832,7 +841,9 @@ end
 local function BuildDropdownOption(Container, Text, Index, Accent)
 	local Button = AddThemeObject(SetProps(SetChildren(MakeElement("Button"), {
 		MakeElement("Corner", 0, 6),
-		SetProps(MakeElement("RoundFrame", Accent, 0, 2), {
+		SetProps(SetChildren(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 2), {
+				Create("UIGradient", {Name = "Gradient", Rotation = 90, Color = AccentSequence(Accent)})
+			}), {
 			AnchorPoint = Vector2.new(0, 0.5),
 			Position = UDim2.new(0, 5, 0.5, 0),
 			Size = UDim2.new(0, 3, 0, 0),
@@ -1176,6 +1187,29 @@ function OrionLib:MakeWindow(WindowConfig)
 		WindowIcon.Parent = MainWindow.TopBar
 	end	
 
+	local TopAccent = Create("Frame", {
+		Name = "AccentLine",
+		Size = UDim2.new(1, 0, 0, 2),
+		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+		BorderSizePixel = 0,
+		Parent = MainWindow
+	}, {
+		Create("UIGradient", {
+			Name = "Gradient",
+			Color = AccentSequence(CurrentAccent()),
+			Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 1),
+				NumberSequenceKeypoint.new(0.15, 0),
+				NumberSequenceKeypoint.new(0.85, 0),
+				NumberSequenceKeypoint.new(1, 1)
+			})
+		})
+	})
+
+	table.insert(OrionLib.AccentHooks, function(Color)
+		TopAccent.Gradient.Color = AccentSequence(Color)
+	end)
+
 	AddDraggingFunctionality(DragPoint, MainWindow)
 
 	AddConnection(CloseBtn.MouseButton1Up, function()
@@ -1513,10 +1547,34 @@ function OrionLib:MakeWindow(WindowConfig)
 					Click
 				}), "Second")
 
+				local UseGradient = not CustomColor
+				local BoxGradient
+				local StrokeGradient
+				if UseGradient then
+					BoxGradient = Create("UIGradient", {Rotation = 45, Enabled = false, Color = AccentSequence(ToggleConfig.Color)})
+					BoxGradient.Parent = ToggleBox
+					StrokeGradient = Create("UIGradient", {Rotation = 45, Enabled = false, Color = AccentSequence(ToggleConfig.Color)})
+					StrokeGradient.Parent = ToggleBox.Stroke
+				end
+
 				function Toggle:Set(Value)
 					Toggle.Value = Value
-					TweenService:Create(ToggleBox, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Toggle.Value and ToggleConfig.Color or OrionLib.Themes[OrionLib.SelectedTheme].Divider}):Play()
-					TweenService:Create(ToggleBox.Stroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = Toggle.Value and ToggleConfig.Color or OrionLib.Themes[OrionLib.SelectedTheme].Stroke}):Play()
+					local OnColor = UseGradient and Color3.fromRGB(255, 255, 255) or ToggleConfig.Color
+					if UseGradient then
+						if Value then
+							BoxGradient.Enabled = true
+							StrokeGradient.Enabled = true
+						else
+							task.delay(0.3, function()
+								if not Toggle.Value then
+									BoxGradient.Enabled = false
+									StrokeGradient.Enabled = false
+								end
+							end)
+						end
+					end
+					TweenService:Create(ToggleBox, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Toggle.Value and OnColor or OrionLib.Themes[OrionLib.SelectedTheme].Divider}):Play()
+					TweenService:Create(ToggleBox.Stroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = Toggle.Value and OnColor or OrionLib.Themes[OrionLib.SelectedTheme].Stroke}):Play()
 					if ToggleConfig.Type == "Pill" then
 						TweenService:Create(ToggleBox.Knob, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
 							Position = Toggle.Value and UDim2.new(1, -17, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
@@ -1534,8 +1592,10 @@ function OrionLib:MakeWindow(WindowConfig)
 					table.insert(OrionLib.AccentHooks, function(Color)
 						ToggleConfig.Color = Color
 						local Theme = OrionLib.Themes[OrionLib.SelectedTheme]
-						ToggleBox.BackgroundColor3 = Toggle.Value and Color or Theme.Divider
-						ToggleBox.Stroke.Color = Toggle.Value and Color or Theme.Stroke
+						BoxGradient.Color = AccentSequence(Color)
+						StrokeGradient.Color = AccentSequence(Color)
+						ToggleBox.BackgroundColor3 = Toggle.Value and Color3.fromRGB(255, 255, 255) or Theme.Divider
+						ToggleBox.Stroke.Color = Toggle.Value and Color3.fromRGB(255, 255, 255) or Theme.Stroke
 					end)
 				end
 
@@ -1677,12 +1737,19 @@ function OrionLib:MakeWindow(WindowConfig)
 				end      
 
 				if not CustomColor then
+					local BarStroke = SliderBar:FindFirstChildOfClass("UIStroke")
+					SliderDrag.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					Create("UIGradient", {Name = "Gradient", Color = AccentSequence(SliderConfig.Color)}).Parent = SliderDrag
+					if BarStroke then
+						BarStroke.Color = Color3.fromRGB(255, 255, 255)
+						Create("UIGradient", {Name = "Gradient", Color = AccentSequence(SliderConfig.Color)}).Parent = BarStroke
+					end
 					table.insert(OrionLib.AccentHooks, function(Color)
-						SliderDrag.BackgroundColor3 = Color
+						SliderConfig.Color = Color
+						SliderDrag.Gradient.Color = AccentSequence(Color)
 						SliderBar.BackgroundColor3 = Color
-						local BarStroke = SliderBar:FindFirstChildOfClass("UIStroke")
 						if BarStroke then
-							BarStroke.Color = Color
+							BarStroke.Gradient.Color = AccentSequence(Color)
 						end
 					end)
 				end
@@ -1716,7 +1783,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					table.insert(OrionLib.AccentHooks, function(Color)
 						DropdownConfig.Color = Color
 						for _, Button in pairs(Dropdown.Buttons) do
-							Button.Bar.BackgroundColor3 = Color
+							Button.Bar.Gradient.Color = AccentSequence(Color)
 							Button.Check.ImageColor3 = Color
 						end
 					end)
@@ -1804,7 +1871,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					table.insert(OrionLib.AccentHooks, function(Color)
 						DropdownConfig.Color = Color
 						for _, Button in pairs(Dropdown.Buttons) do
-							Button.Bar.BackgroundColor3 = Color
+							Button.Bar.Gradient.Color = AccentSequence(Color)
 							Button.Check.ImageColor3 = Color
 						end
 					end)
