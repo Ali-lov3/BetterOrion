@@ -1294,43 +1294,7 @@ function OrionLib:MakeWindow(WindowConfig)
 		LoadSequence()
 	end
 
-	local SearchContainers = {}
-
-	local function ItemText(Item)
-		local Text = ""
-		for _, Object in ipairs(Item:GetDescendants()) do
-			if Object:IsA("TextLabel") then
-				Text = Text .. " " .. Object.Text
-			end
-		end
-		return string.lower(Text)
-	end
-
-	local function ApplySearch(Query)
-		Query = string.lower(string.match(Query, "^%s*(.-)%s*$"))
-		for _, Container in ipairs(SearchContainers) do
-			for _, Item in ipairs(Container:GetChildren()) do
-				if Item:IsA("GuiObject") then
-					local Holder = Item:FindFirstChild("Holder")
-					if Holder then
-						local Title = Item:FindFirstChildOfClass("TextLabel")
-						local SectionMatch = Query == "" or (Title ~= nil and string.find(string.lower(Title.Text), Query, 1, true) ~= nil)
-						local Any = false
-						for _, Element in ipairs(Holder:GetChildren()) do
-							if Element:IsA("GuiObject") then
-								local Match = SectionMatch or string.find(ItemText(Element), Query, 1, true) ~= nil
-								Element.Visible = Match
-								Any = Any or Match
-							end
-						end
-						Item.Visible = Any
-					else
-						Item.Visible = Query == "" or string.find(ItemText(Item), Query, 1, true) ~= nil
-					end
-				end
-			end
-		end
-	end
+	local SearchEntries = {}
 
 	local SearchBox = AddThemeObject(SetProps(Create("TextBox", {
 		Size = UDim2.new(1, -36, 1, 0),
@@ -1360,16 +1324,181 @@ function OrionLib:MakeWindow(WindowConfig)
 		SearchBox
 	}), "Main")
 
+	local Popup = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 8), {
+		Size = UDim2.new(0, 240, 0, 0),
+		Position = UDim2.new(0, 10, 0, 94),
+		Visible = false,
+		ZIndex = 30,
+		Parent = MainWindow
+	}), {
+		AddThemeObject(MakeElement("Stroke"), "Stroke"),
+		MakeElement("List", 0, 2),
+		MakeElement("Padding", 4, 4, 4, 4)
+	}), "Second")
+
+	local CurrentResults = {}
+
+	local function ClearRows()
+		for _, Child in ipairs(Popup:GetChildren()) do
+			if Child:IsA("TextButton") or Child:IsA("TextLabel") then
+				Child:Destroy()
+			end
+		end
+	end
+
+	local function ElementName(Element)
+		local Label = Element:FindFirstChild("Title") or Element:FindFirstChild("Content")
+		if Label and Label:IsA("TextLabel") then
+			return (string.gsub(Label.Text, "<[^>]+>", ""))
+		end
+	end
+
+	local function Choose(Result)
+		SearchBox.Text = ""
+		SearchBox:ReleaseFocus()
+		Popup.Visible = false
+		Result.Entry.Select()
+		task.spawn(function()
+			task.wait(0.08)
+			local Container = Result.Entry.Container
+			Container.CanvasPosition = Vector2.new(0, math.max(0, Result.Element.AbsolutePosition.Y - Container.AbsolutePosition.Y + Container.CanvasPosition.Y - 12))
+			local Stroke = Result.Element:FindFirstChildOfClass("UIStroke")
+			if Stroke then
+				TweenService:Create(Stroke, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = CurrentAccent()}):Play()
+				task.wait(1)
+				TweenService:Create(Stroke, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = OrionLib.Themes[OrionLib.SelectedTheme].Stroke}):Play()
+			end
+		end)
+	end
+
+	local function Refresh(Query)
+		ClearRows()
+		CurrentResults = {}
+		Query = string.lower(string.match(Query, "^%s*(.-)%s*$"))
+		if Query == "" then
+			Popup.Visible = false
+			return
+		end
+		local Found = {}
+		local function Consider(Entry, Element)
+			local Name = ElementName(Element)
+			if not Name or Name == "" then return end
+			local Lower = string.lower(Name)
+			local Pos = string.find(Lower, Query, 1, true)
+			if not Pos then return end
+			local Rank = 2
+			if Pos == 1 then
+				Rank = 0
+			elseif string.sub(Lower, Pos - 1, Pos - 1) == " " then
+				Rank = 1
+			end
+			table.insert(Found, {Name = Name, Rank = Rank, Element = Element, Entry = Entry})
+		end
+		for _, Entry in ipairs(SearchEntries) do
+			for _, Item in ipairs(Entry.Container:GetChildren()) do
+				if Item:IsA("GuiObject") then
+					local Holder = Item:FindFirstChild("Holder")
+					if Holder then
+						for _, Element in ipairs(Holder:GetChildren()) do
+							if Element:IsA("GuiObject") then
+								Consider(Entry, Element)
+							end
+						end
+					else
+						Consider(Entry, Item)
+					end
+				end
+			end
+		end
+		table.sort(Found, function(A, B)
+			if A.Rank ~= B.Rank then
+				return A.Rank < B.Rank
+			end
+			return A.Name < B.Name
+		end)
+		local Theme = OrionLib.Themes[OrionLib.SelectedTheme]
+		local Count = math.min(#Found, 6)
+		if Count == 0 then
+			SetProps(MakeElement("Label", "No results", 13), {
+				Size = UDim2.new(1, 0, 0, 30),
+				Position = UDim2.new(0, 0, 0, 0),
+				TextColor3 = Theme.TextDark,
+				Font = Enum.Font.BuilderSansMedium,
+				TextXAlignment = Enum.TextXAlignment.Center,
+				ZIndex = 31,
+				Parent = Popup
+			})
+			Popup.Size = UDim2.new(0, 240, 0, 38)
+			Popup.Visible = true
+			return
+		end
+		for Index = 1, Count do
+			local Result = Found[Index]
+			CurrentResults[Index] = Result
+			local Row = Create("TextButton", {
+				Text = "",
+				AutoButtonColor = false,
+				BorderSizePixel = 0,
+				BackgroundColor3 = Theme.Divider,
+				BackgroundTransparency = 1,
+				Size = UDim2.new(1, 0, 0, 30),
+				ZIndex = 31,
+				LayoutOrder = Index,
+				Parent = Popup
+			}, {
+				Create("UICorner", {CornerRadius = UDim.new(0, 6)}),
+				SetProps(MakeElement("Label", Result.Name, 13), {
+					Size = UDim2.new(1, -92, 1, 0),
+					Position = UDim2.new(0, 10, 0, 0),
+					TextColor3 = Theme.Text,
+					Font = Enum.Font.BuilderSansMedium,
+					TextTruncate = Enum.TextTruncate.AtEnd,
+					ZIndex = 32
+				}),
+				SetProps(MakeElement("Label", Result.Entry.Tab, 11), {
+					Size = UDim2.new(0, 76, 1, 0),
+					Position = UDim2.new(1, -84, 0, 0),
+					TextColor3 = Theme.TextDark,
+					Font = Enum.Font.BuilderSans,
+					TextXAlignment = Enum.TextXAlignment.Right,
+					TextTruncate = Enum.TextTruncate.AtEnd,
+					ZIndex = 32
+				})
+			})
+			AddConnection(Row.MouseEnter, function()
+				TweenService:Create(Row, TweenInfo.new(0.15, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0.3}):Play()
+			end)
+			AddConnection(Row.MouseLeave, function()
+				TweenService:Create(Row, TweenInfo.new(0.15, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
+			end)
+			AddConnection(Row.MouseButton1Click, function()
+				Choose(Result)
+			end)
+		end
+		Popup.Size = UDim2.new(0, 240, 0, Count * 30 + (Count - 1) * 2 + 8)
+		Popup.Visible = true
+	end
+
 	AddConnection(SearchBox:GetPropertyChangedSignal("Text"), function()
-		ApplySearch(SearchBox.Text)
+		Refresh(SearchBox.Text)
 	end)
 
 	AddConnection(SearchBox.Focused, function()
 		TweenService:Create(SearchFrame.UIStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = CurrentAccent()}):Play()
+		Refresh(SearchBox.Text)
 	end)
 
-	AddConnection(SearchBox.FocusLost, function()
+	AddConnection(SearchBox.FocusLost, function(EnterPressed)
 		TweenService:Create(SearchFrame.UIStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = OrionLib.Themes[OrionLib.SelectedTheme].Stroke}):Play()
+		if EnterPressed and CurrentResults[1] then
+			Choose(CurrentResults[1])
+			return
+		end
+		task.delay(0.35, function()
+			if not SearchBox:IsFocused() then
+				Popup.Visible = false
+			end
+		end)
 	end)
 
 	local TabFunction = {}
@@ -1427,8 +1556,6 @@ function OrionLib:MakeWindow(WindowConfig)
 			Container.CanvasSize = UDim2.new(0, 0, 0, Container.UIListLayout.AbsoluteContentSize.Y + 30)
 		end)
 
-		table.insert(SearchContainers, Container)
-
 		table.insert(OrionLib.AccentHooks, function(Color)
 			TabFrame.Bg.BackgroundColor3 = Color
 			TabFrame.Pill.BackgroundColor3 = Color
@@ -1460,7 +1587,7 @@ function OrionLib:MakeWindow(WindowConfig)
 			end
 		end)
 
-		AddConnection(TabFrame.MouseButton1Click, function()
+		local function SelectTab()
 			for _, Tab in next, TabHolder:GetChildren() do
 				if Tab:IsA("TextButton") then
 					Tab.Title.Font = Enum.Font.BuilderSansMedium
@@ -1482,7 +1609,11 @@ function OrionLib:MakeWindow(WindowConfig)
 			TweenService:Create(TabFrame.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
 			TabFrame.Title.Font = Enum.Font.BuilderSansBold
 			Container.Visible = true
-		end)
+		end
+
+		AddConnection(TabFrame.MouseButton1Click, SelectTab)
+
+		table.insert(SearchEntries, {Container = Container, Select = SelectTab, Tab = TabConfig.Name})
 
 		local function GetElements(ItemParent)
 			local ElementFunction = {}
