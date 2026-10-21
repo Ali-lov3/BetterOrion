@@ -82,6 +82,7 @@ end
 
 local Orion = Instance.new("ScreenGui")
 Orion.Name = "Orion"
+Orion.IgnoreGuiInset = true
 if syn then
 	syn.protect_gui(Orion)
 	Orion.Parent = game.CoreGui
@@ -1033,7 +1034,8 @@ function OrionLib:MakeWindow(WindowConfig)
 	end)
 
 	local TabHolder = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255, 255, 255), 2), {
-		Size = UDim2.new(1, 0, 1, -50)
+		Size = UDim2.new(1, 0, 1, -96),
+		Position = UDim2.new(0, 0, 0, 46)
 	}), {
 		MakeElement("List", 0, 4),
 		MakeElement("Padding", 10, 10, 10, 12)
@@ -1142,8 +1144,8 @@ function OrionLib:MakeWindow(WindowConfig)
 
 	local MainWindow = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
 		Parent = Orion,
-		Position = UDim2.new(0.5, -330, 0.5, -195),
-		Size = UDim2.new(0, 660, 0, 390),
+		Position = UDim2.new(0.5, -320, 0.5, -182),
+		Size = UDim2.new(0, 640, 0, 364),
 		ClipsDescendants = true
 	}), {
 		AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
@@ -1237,7 +1239,7 @@ function OrionLib:MakeWindow(WindowConfig)
 
 	AddConnection(MinimizeBtn.MouseButton1Up, function()
 		if Minimized then
-			TweenService:Create(MainWindow, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 660, 0, 390)}):Play()
+			TweenService:Create(MainWindow, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 640, 0, 364)}):Play()
 			MinimizeBtn.Ico.Image = "rbxassetid://7072719338"
 			wait(.02)
 			MainWindow.ClipsDescendants = false
@@ -1291,6 +1293,84 @@ function OrionLib:MakeWindow(WindowConfig)
 	if WindowConfig.IntroEnabled then
 		LoadSequence()
 	end
+
+	local SearchContainers = {}
+
+	local function ItemText(Item)
+		local Text = ""
+		for _, Object in ipairs(Item:GetDescendants()) do
+			if Object:IsA("TextLabel") then
+				Text = Text .. " " .. Object.Text
+			end
+		end
+		return string.lower(Text)
+	end
+
+	local function ApplySearch(Query)
+		Query = string.lower(string.match(Query, "^%s*(.-)%s*$"))
+		for _, Container in ipairs(SearchContainers) do
+			for _, Item in ipairs(Container:GetChildren()) do
+				if Item:IsA("GuiObject") then
+					local Holder = Item:FindFirstChild("Holder")
+					if Holder then
+						local Title = Item:FindFirstChildOfClass("TextLabel")
+						local SectionMatch = Query == "" or (Title ~= nil and string.find(string.lower(Title.Text), Query, 1, true) ~= nil)
+						local Any = false
+						for _, Element in ipairs(Holder:GetChildren()) do
+							if Element:IsA("GuiObject") then
+								local Match = SectionMatch or string.find(ItemText(Element), Query, 1, true) ~= nil
+								Element.Visible = Match
+								Any = Any or Match
+							end
+						end
+						Item.Visible = Any
+					else
+						Item.Visible = Query == "" or string.find(ItemText(Item), Query, 1, true) ~= nil
+					end
+				end
+			end
+		end
+	end
+
+	local SearchBox = AddThemeObject(SetProps(Create("TextBox", {
+		Size = UDim2.new(1, -36, 1, 0),
+		Position = UDim2.new(0, 32, 0, 0),
+		BackgroundTransparency = 1,
+		PlaceholderText = "Search",
+		Text = "",
+		Font = Enum.Font.BuilderSansMedium,
+		TextSize = 13,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ClearTextOnFocus = false,
+		ClipsDescendants = true
+	}), {}), "Text")
+	SearchBox.PlaceholderColor3 = OrionLib.Themes[OrionLib.SelectedTheme].TextDark
+
+	local SearchFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 8), {
+		Size = UDim2.new(1, -20, 0, 30),
+		Position = UDim2.new(0, 10, 0, 10),
+		Parent = WindowStuff
+	}), {
+		AddThemeObject(MakeElement("Stroke"), "Stroke"),
+		AddThemeObject(SetProps(MakeElement("Image", "search"), {
+			AnchorPoint = Vector2.new(0, 0.5),
+			Size = UDim2.new(0, 14, 0, 14),
+			Position = UDim2.new(0, 10, 0.5, 0)
+		}), "TextDark"),
+		SearchBox
+	}), "Main")
+
+	AddConnection(SearchBox:GetPropertyChangedSignal("Text"), function()
+		ApplySearch(SearchBox.Text)
+	end)
+
+	AddConnection(SearchBox.Focused, function()
+		TweenService:Create(SearchFrame.UIStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = CurrentAccent()}):Play()
+	end)
+
+	AddConnection(SearchBox.FocusLost, function()
+		TweenService:Create(SearchFrame.UIStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = OrionLib.Themes[OrionLib.SelectedTheme].Stroke}):Play()
+	end)
 
 	local TabFunction = {}
 	function TabFunction:MakeTab(TabConfig)
@@ -1346,6 +1426,8 @@ function OrionLib:MakeWindow(WindowConfig)
 		AddConnection(Container.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
 			Container.CanvasSize = UDim2.new(0, 0, 0, Container.UIListLayout.AbsoluteContentSize.Y + 30)
 		end)
+
+		table.insert(SearchContainers, Container)
 
 		table.insert(OrionLib.AccentHooks, function(Color)
 			TabFrame.Bg.BackgroundColor3 = Color
