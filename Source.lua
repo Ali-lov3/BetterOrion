@@ -568,7 +568,8 @@ end)
 CreateElement("Stroke", function(Color, Thickness)
 	local Stroke = Create("UIStroke", {
 		Color = Color or Color3.fromRGB(255, 255, 255),
-		Thickness = Thickness or 1
+		Thickness = Thickness or 1,
+		Transparency = 0.2
 	})
 	return Stroke
 end)
@@ -1150,7 +1151,8 @@ function OrionLib:MakeWindow(WindowConfig)
 			}), "Second"),
 		}),
 		DragPoint,
-		WindowStuff
+		WindowStuff,
+		AddThemeObject(MakeElement("Stroke"), "Stroke")
 	}), "Main")
 
 	if WindowConfig.ShowIcon then
@@ -1276,6 +1278,19 @@ function OrionLib:MakeWindow(WindowConfig)
 			Size = UDim2.new(1, 0, 0, 30),
 			Parent = TabHolder
 		}), {
+			AddThemeObject(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 8), {
+				Size = UDim2.new(1, 0, 1, 0),
+				BackgroundTransparency = 1,
+				ZIndex = 0,
+				Name = "Bg"
+			}), "Accent"),
+			AddThemeObject(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 2), {
+				AnchorPoint = Vector2.new(0, 0.5),
+				Size = UDim2.new(0, 3, 0, 14),
+				Position = UDim2.new(0, 0, 0.5, 0),
+				BackgroundTransparency = 1,
+				Name = "Pill"
+			}), "Accent"),
 			AddThemeObject(SetProps(MakeElement("Image", TabConfig.Icon), {
 				AnchorPoint = Vector2.new(0, 0.5),
 				Size = UDim2.new(0, 18, 0, 18),
@@ -1307,8 +1322,15 @@ function OrionLib:MakeWindow(WindowConfig)
 			Container.CanvasSize = UDim2.new(0, 0, 0, Container.UIListLayout.AbsoluteContentSize.Y + 30)
 		end)
 
+		table.insert(OrionLib.AccentHooks, function(Color)
+			TabFrame.Bg.BackgroundColor3 = Color
+			TabFrame.Pill.BackgroundColor3 = Color
+		end)
+
 		if FirstTab then
 			FirstTab = false
+			TabFrame.Bg.BackgroundTransparency = 0.88
+			TabFrame.Pill.BackgroundTransparency = 0
 			TabFrame.Ico.ImageTransparency = 0
 			TabFrame.Title.TextTransparency = 0
 			TabFrame.Title.Font = Enum.Font.GothamBold
@@ -1319,6 +1341,8 @@ function OrionLib:MakeWindow(WindowConfig)
 			for _, Tab in next, TabHolder:GetChildren() do
 				if Tab:IsA("TextButton") then
 					Tab.Title.Font = Enum.Font.GothamMedium
+					TweenService:Create(Tab.Bg, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
+					TweenService:Create(Tab.Pill, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
 					TweenService:Create(Tab.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0.4}):Play()
 					TweenService:Create(Tab.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {TextTransparency = 0.4}):Play()
 				end
@@ -1328,6 +1352,8 @@ function OrionLib:MakeWindow(WindowConfig)
 					ItemContainer.Visible = false
 				end
 			end
+			TweenService:Create(TabFrame.Bg, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0.88}):Play()
+			TweenService:Create(TabFrame.Pill, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
 			TweenService:Create(TabFrame.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0}):Play()
 			TweenService:Create(TabFrame.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
 			TabFrame.Title.Font = Enum.Font.GothamBold
