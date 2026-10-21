@@ -18,9 +18,15 @@ local OrionLib = {
 			Stroke = Color3.fromRGB(52, 52, 60),
 			Divider = Color3.fromRGB(42, 42, 49),
 			Text = Color3.fromRGB(237, 237, 242),
-			TextDark = Color3.fromRGB(148, 148, 160)
+			TextDark = Color3.fromRGB(148, 148, 160),
+			Accent = Color3.fromRGB(104, 108, 245)
 		}
 	},
+	ThemeOrder = {"Default"},
+	BaseAccents = {},
+	AccentHooks = {},
+	MenuKey = "RightShift",
+	Rebinding = false,
 	SelectedTheme = "Default",
 	Folder = nil,
 	SaveCfg = false
@@ -260,6 +266,118 @@ local function SetTheme()
 		end    
 	end    
 end
+
+function OrionLib:AddTheme(Name, Data)
+	local Theme = {}
+	for Key, Value in pairs(OrionLib.Themes.Default) do
+		Theme[Key] = (Data and Data[Key]) or Value
+	end
+	OrionLib.Themes[Name] = Theme
+	OrionLib.BaseAccents[Name] = Theme.Accent
+	if not table.find(OrionLib.ThemeOrder, Name) then
+		table.insert(OrionLib.ThemeOrder, Name)
+	end
+end
+
+function OrionLib:SetAccent(Color)
+	OrionLib.Themes[OrionLib.SelectedTheme].Accent = Color
+	for _, Hook in ipairs(OrionLib.AccentHooks) do
+		pcall(Hook, Color)
+	end
+end
+
+function OrionLib:SetTheme(Name)
+	if not OrionLib.Themes[Name] then
+		return false
+	end
+	OrionLib.SelectedTheme = Name
+	OrionLib.Themes[Name].Accent = OrionLib.BaseAccents[Name]
+	SetTheme()
+	OrionLib:SetAccent(OrionLib.Themes[Name].Accent)
+	return true
+end
+
+OrionLib.BaseAccents.Default = OrionLib.Themes.Default.Accent
+
+OrionLib:AddTheme("Emerald", {
+	Main = Color3.fromRGB(12, 18, 16),
+	Second = Color3.fromRGB(18, 27, 23),
+	Stroke = Color3.fromRGB(38, 62, 52),
+	Divider = Color3.fromRGB(30, 48, 41),
+	Text = Color3.fromRGB(232, 245, 239),
+	TextDark = Color3.fromRGB(134, 163, 149),
+	Accent = Color3.fromRGB(16, 185, 129)
+})
+
+OrionLib:AddTheme("Ocean", {
+	Main = Color3.fromRGB(11, 16, 24),
+	Second = Color3.fromRGB(16, 24, 36),
+	Stroke = Color3.fromRGB(36, 54, 78),
+	Divider = Color3.fromRGB(28, 42, 62),
+	Text = Color3.fromRGB(230, 240, 250),
+	TextDark = Color3.fromRGB(132, 155, 182),
+	Accent = Color3.fromRGB(56, 152, 236)
+})
+
+OrionLib:AddTheme("Crimson", {
+	Main = Color3.fromRGB(20, 12, 14),
+	Second = Color3.fromRGB(29, 17, 20),
+	Stroke = Color3.fromRGB(68, 34, 40),
+	Divider = Color3.fromRGB(52, 27, 32),
+	Text = Color3.fromRGB(245, 232, 234),
+	TextDark = Color3.fromRGB(170, 136, 141),
+	Accent = Color3.fromRGB(230, 57, 70)
+})
+
+OrionLib:AddTheme("Amethyst", {
+	Main = Color3.fromRGB(16, 12, 24),
+	Second = Color3.fromRGB(23, 18, 34),
+	Stroke = Color3.fromRGB(56, 44, 82),
+	Divider = Color3.fromRGB(44, 34, 66),
+	Text = Color3.fromRGB(240, 234, 250),
+	TextDark = Color3.fromRGB(156, 142, 182),
+	Accent = Color3.fromRGB(168, 85, 247)
+})
+
+OrionLib:AddTheme("Pink", {
+	Main = Color3.fromRGB(15, 11, 14),
+	Second = Color3.fromRGB(23, 17, 21),
+	Stroke = Color3.fromRGB(64, 40, 53),
+	Divider = Color3.fromRGB(46, 30, 39),
+	Text = Color3.fromRGB(250, 234, 242),
+	TextDark = Color3.fromRGB(178, 140, 160),
+	Accent = Color3.fromRGB(244, 114, 182)
+})
+
+OrionLib:AddTheme("Sunset", {
+	Main = Color3.fromRGB(21, 15, 11),
+	Second = Color3.fromRGB(31, 22, 16),
+	Stroke = Color3.fromRGB(74, 52, 36),
+	Divider = Color3.fromRGB(57, 40, 28),
+	Text = Color3.fromRGB(250, 240, 230),
+	TextDark = Color3.fromRGB(178, 152, 130),
+	Accent = Color3.fromRGB(251, 146, 60)
+})
+
+OrionLib:AddTheme("Midnight", {
+	Main = Color3.fromRGB(8, 8, 10),
+	Second = Color3.fromRGB(14, 14, 17),
+	Stroke = Color3.fromRGB(34, 34, 40),
+	Divider = Color3.fromRGB(26, 26, 31),
+	Text = Color3.fromRGB(245, 245, 247),
+	TextDark = Color3.fromRGB(125, 125, 135),
+	Accent = Color3.fromRGB(34, 211, 238)
+})
+
+OrionLib:AddTheme("Mono", {
+	Main = Color3.fromRGB(18, 18, 18),
+	Second = Color3.fromRGB(26, 26, 26),
+	Stroke = Color3.fromRGB(56, 56, 56),
+	Divider = Color3.fromRGB(44, 44, 44),
+	Text = Color3.fromRGB(240, 240, 240),
+	TextDark = Color3.fromRGB(150, 150, 150),
+	Accent = Color3.fromRGB(220, 220, 220)
+})
 
 local function PackColor(Color)
 	return {R = Color.R * 255, G = Color.G * 255, B = Color.B * 255}
@@ -563,7 +681,9 @@ local DropdownPadding = 8
 local DropdownGap = 4
 local DropdownMaxRows = 5
 local DropdownPillMax = 150
-local DropdownAccent = Color3.fromRGB(104, 108, 245)
+local function CurrentAccent()
+	return OrionLib.Themes[OrionLib.SelectedTheme].Accent
+end
 
 local function DropdownTween(Object, Props, Time)
 	TweenService:Create(Object, TweenInfo.new(Time or 0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), Props):Play()
@@ -1063,15 +1183,19 @@ function OrionLib:MakeWindow(WindowConfig)
 		UIHidden = true
 		OrionLib:MakeNotification({
 			Name = "Interface Hidden",
-			Content = "Tap RightShift to reopen the interface",
+			Content = "Press " .. OrionLib.MenuKey .. " to toggle the interface",
 			Time = 5
 		})
 		WindowConfig.CloseCallback()
 	end)
 
 	AddConnection(UserInputService.InputBegan, function(Input)
-		if Input.KeyCode == Enum.KeyCode.RightShift and UIHidden then
-			MainWindow.Visible = true
+		if OrionLib.Rebinding or UserInputService:GetFocusedTextBox() then
+			return
+		end
+		if Input.KeyCode.Name == OrionLib.MenuKey or Input.UserInputType.Name == OrionLib.MenuKey then
+			MainWindow.Visible = not MainWindow.Visible
+			UIHidden = not MainWindow.Visible
 		end
 	end)
 
@@ -1322,7 +1446,8 @@ function OrionLib:MakeWindow(WindowConfig)
 				ToggleConfig.Name = ToggleConfig.Name or "Toggle"
 				ToggleConfig.Default = ToggleConfig.Default or false
 				ToggleConfig.Callback = ToggleConfig.Callback or function() end
-				ToggleConfig.Color = ToggleConfig.Color or Color3.fromRGB(104, 108, 245)
+				local CustomColor = ToggleConfig.Color ~= nil
+				ToggleConfig.Color = ToggleConfig.Color or CurrentAccent()
 				ToggleConfig.Flag = ToggleConfig.Flag or nil
 				ToggleConfig.Save = ToggleConfig.Save or false
 				ToggleConfig.Type = string.lower(tostring(ToggleConfig.Type or "checkbox")) == "pill" and "Pill" or "Checkbox"
@@ -1390,8 +1515,8 @@ function OrionLib:MakeWindow(WindowConfig)
 
 				function Toggle:Set(Value)
 					Toggle.Value = Value
-					TweenService:Create(ToggleBox, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Toggle.Value and ToggleConfig.Color or OrionLib.Themes.Default.Divider}):Play()
-					TweenService:Create(ToggleBox.Stroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = Toggle.Value and ToggleConfig.Color or OrionLib.Themes.Default.Stroke}):Play()
+					TweenService:Create(ToggleBox, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Toggle.Value and ToggleConfig.Color or OrionLib.Themes[OrionLib.SelectedTheme].Divider}):Play()
+					TweenService:Create(ToggleBox.Stroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = Toggle.Value and ToggleConfig.Color or OrionLib.Themes[OrionLib.SelectedTheme].Stroke}):Play()
 					if ToggleConfig.Type == "Pill" then
 						TweenService:Create(ToggleBox.Knob, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
 							Position = Toggle.Value and UDim2.new(1, -17, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
@@ -1404,6 +1529,15 @@ function OrionLib:MakeWindow(WindowConfig)
 				end    
 
 				Toggle:Set(Toggle.Value)
+
+				if not CustomColor then
+					table.insert(OrionLib.AccentHooks, function(Color)
+						ToggleConfig.Color = Color
+						local Theme = OrionLib.Themes[OrionLib.SelectedTheme]
+						ToggleBox.BackgroundColor3 = Toggle.Value and Color or Theme.Divider
+						ToggleBox.Stroke.Color = Toggle.Value and Color or Theme.Stroke
+					end)
+				end
 
 				AddConnection(Click.MouseEnter, function()
 					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
@@ -1437,7 +1571,8 @@ function OrionLib:MakeWindow(WindowConfig)
 				SliderConfig.Default = SliderConfig.Default or 50
 				SliderConfig.Callback = SliderConfig.Callback or function() end
 				SliderConfig.ValueName = SliderConfig.ValueName or ""
-				SliderConfig.Color = SliderConfig.Color or Color3.fromRGB(104, 108, 245)
+				local CustomColor = SliderConfig.Color ~= nil
+				SliderConfig.Color = SliderConfig.Color or CurrentAccent()
 				SliderConfig.Flag = SliderConfig.Flag or nil
 				SliderConfig.Save = SliderConfig.Save or false
 
@@ -1541,6 +1676,17 @@ function OrionLib:MakeWindow(WindowConfig)
 					SliderConfig.Callback(self.Value)
 				end      
 
+				if not CustomColor then
+					table.insert(OrionLib.AccentHooks, function(Color)
+						SliderDrag.BackgroundColor3 = Color
+						SliderBar.BackgroundColor3 = Color
+						local BarStroke = SliderBar:FindFirstChildOfClass("UIStroke")
+						if BarStroke then
+							BarStroke.Color = Color
+						end
+					end)
+				end
+
 				Slider:Set(Slider.Value)
 				if SliderConfig.Flag then				
 					OrionLib.Flags[SliderConfig.Flag] = Slider
@@ -1555,7 +1701,8 @@ function OrionLib:MakeWindow(WindowConfig)
 				DropdownConfig.Callback = DropdownConfig.Callback or function() end
 				DropdownConfig.Flag = DropdownConfig.Flag or nil
 				DropdownConfig.Save = DropdownConfig.Save or false
-				DropdownConfig.Color = DropdownConfig.Color or DropdownAccent
+				local CustomColor = DropdownConfig.Color ~= nil
+				DropdownConfig.Color = DropdownConfig.Color or CurrentAccent()
 
 				local Dropdown = {Value = DropdownConfig.Default, Options = DropdownConfig.Options, Buttons = {}, Toggled = false, Type = "Dropdown", Save = DropdownConfig.Save}
 
@@ -1564,6 +1711,16 @@ function OrionLib:MakeWindow(WindowConfig)
 				end
 
 				local Parts = BuildDropdown(ItemParent, DropdownConfig.Name)
+
+				if not CustomColor then
+					table.insert(OrionLib.AccentHooks, function(Color)
+						DropdownConfig.Color = Color
+						for _, Button in pairs(Dropdown.Buttons) do
+							Button.Bar.BackgroundColor3 = Color
+							Button.Check.ImageColor3 = Color
+						end
+					end)
+				end
 
 				local function Redraw()
 					local Valid = table.find(Dropdown.Options, Dropdown.Value) ~= nil
@@ -1635,12 +1792,23 @@ function OrionLib:MakeWindow(WindowConfig)
 				DropdownConfig.Callback = DropdownConfig.Callback or function() end
 				DropdownConfig.Flag = DropdownConfig.Flag or nil
 				DropdownConfig.Save = DropdownConfig.Save or false
-				DropdownConfig.Color = DropdownConfig.Color or DropdownAccent
+				local CustomColor = DropdownConfig.Color ~= nil
+				DropdownConfig.Color = DropdownConfig.Color or CurrentAccent()
 
 				local Dropdown = {Value = {}, Options = DropdownConfig.Options, Buttons = {}, Toggled = false, Type = "MultiDropdown", Save = DropdownConfig.Save}
 				local Selected = {}
 
 				local Parts = BuildDropdown(ItemParent, DropdownConfig.Name)
+
+				if not CustomColor then
+					table.insert(OrionLib.AccentHooks, function(Color)
+						DropdownConfig.Color = Color
+						for _, Button in pairs(Dropdown.Buttons) do
+							Button.Bar.BackgroundColor3 = Color
+							Button.Check.ImageColor3 = Color
+						end
+					end)
+				end
 
 				local function Redraw()
 					local Values = {}
@@ -1773,6 +1941,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					if Input.UserInputType == Enum.UserInputType.MouseButton1 then
 						if Bind.Binding then return end
 						Bind.Binding = true
+						OrionLib.Rebinding = true
 						BindBox.Value.Text = ""
 					end
 				end)
@@ -1831,6 +2000,7 @@ function OrionLib:MakeWindow(WindowConfig)
 
 				function Bind:Set(Key)
 					Bind.Binding = false
+					OrionLib.Rebinding = false
 					Bind.Value = Key or Bind.Value
 					Bind.Value = Bind.Value.Name or Bind.Value
 					BindBox.Value.Text = Bind.Value
@@ -2299,6 +2469,136 @@ function OrionLib:MakeWindow(WindowConfig)
 
 				return Manager
 			end
+			function ElementFunction:AddSettingManager(ManagerConfig)
+				ManagerConfig = ManagerConfig or {}
+
+				local Manager = {}
+				local Ready = false
+				local Syncing = false
+				local SavePending = false
+				local ThemePicker
+				local AccentPicker
+
+				local function SettingsPath()
+					return OrionLib.Folder .. "/settings.json"
+				end
+
+				local function SaveSettings()
+					if not Ready then
+						return
+					end
+					pcall(function()
+						local Accent = OrionLib.Themes[OrionLib.SelectedTheme].Accent
+						if not isfolder(OrionLib.Folder) then
+							makefolder(OrionLib.Folder)
+						end
+						writefile(SettingsPath(), HttpService:JSONEncode({
+							Theme = OrionLib.SelectedTheme,
+							Accent = {R = Accent.R * 255, G = Accent.G * 255, B = Accent.B * 255},
+							MenuKey = OrionLib.MenuKey
+						}))
+					end)
+				end
+
+				local function QueueSave()
+					if SavePending then
+						return
+					end
+					SavePending = true
+					task.delay(0.5, function()
+						SavePending = false
+						SaveSettings()
+					end)
+				end
+
+				pcall(function()
+					if isfile(SettingsPath()) then
+						local Data = HttpService:JSONDecode(readfile(SettingsPath()))
+						if Data.Theme and OrionLib.Themes[Data.Theme] then
+							OrionLib:SetTheme(Data.Theme)
+						end
+						if Data.Accent then
+							OrionLib:SetAccent(Color3.fromRGB(Data.Accent.R, Data.Accent.G, Data.Accent.B))
+						end
+						if Data.MenuKey and Enum.KeyCode[Data.MenuKey] then
+							OrionLib.MenuKey = Data.MenuKey
+						end
+					end
+				end)
+
+				ThemePicker = ElementFunction:AddDropdown({
+					Name = "Theme",
+					Default = OrionLib.SelectedTheme,
+					Options = table.clone(OrionLib.ThemeOrder),
+					Callback = function(Value)
+						if not Ready then
+							return
+						end
+						OrionLib:SetTheme(Value)
+						Syncing = true
+						AccentPicker:Set(OrionLib.Themes[Value].Accent)
+						Syncing = false
+						SaveSettings()
+					end
+				})
+
+				AccentPicker = ElementFunction:AddColorpicker({
+					Name = "Accent Color",
+					Default = OrionLib.Themes[OrionLib.SelectedTheme].Accent,
+					Callback = function(Color)
+						if not Ready or Syncing then
+							return
+						end
+						OrionLib:SetAccent(Color)
+						QueueSave()
+					end
+				})
+
+				local KeyOk, DefaultKey = pcall(function()
+					return Enum.KeyCode[OrionLib.MenuKey]
+				end)
+
+				local MenuBind = ElementFunction:AddBind({
+					Name = "Menu Keybind",
+					Default = KeyOk and DefaultKey or Enum.KeyCode.RightShift,
+					Callback = function() end
+				})
+
+				local OriginalSet = MenuBind.Set
+				function MenuBind:Set(Key)
+					OriginalSet(self, Key)
+					OrionLib.MenuKey = self.Value
+					SaveSettings()
+				end
+
+				ElementFunction:AddButton({
+					Name = "Reset Accent",
+					Callback = function()
+						local Base = OrionLib.BaseAccents[OrionLib.SelectedTheme]
+						OrionLib:SetAccent(Base)
+						Syncing = true
+						AccentPicker:Set(Base)
+						Syncing = false
+						SaveSettings()
+					end
+				})
+
+				ElementFunction:AddButton({
+					Name = "Unload Interface",
+					Callback = function()
+						OrionLib:Destroy()
+					end
+				})
+
+				function Manager:Refresh()
+					ThemePicker:Refresh(table.clone(OrionLib.ThemeOrder), true)
+					ThemePicker:Set(OrionLib.SelectedTheme)
+				end
+
+				Ready = true
+				return Manager
+			end
+			ElementFunction.AddSettingsManager = ElementFunction.AddSettingManager
 			return ElementFunction   
 		end	
 
