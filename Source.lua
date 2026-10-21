@@ -780,10 +780,10 @@ local function BuildDropdown(ItemParent, Name)
 	}), {
 		Container,
 		SetProps(SetChildren(MakeElement("TFrame"), {
-			AddThemeObject(SetProps(MakeElement("Label", Name, 15), {
+			AddThemeObject(SetProps(MakeElement("Label", Name, 14), {
 				Size = UDim2.new(1, -(DropdownPillMax + 56), 1, 0),
 				Position = UDim2.new(0, 12, 0, 0),
-				Font = Enum.Font.GothamBold,
+				Font = Enum.Font.GothamSemibold,
 				TextTruncate = Enum.TextTruncate.AtEnd,
 				Name = "Content"
 			}), "Text"),
