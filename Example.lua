@@ -23,7 +23,6 @@ ExampleSection:AddSlider({
 	Min = 0,
 	Max = 100,
 	Default = 50,
-	Color = Color3.fromRGB(9, 149, 98),
 	Increment = 1,
 	ValueName = "",
 	Flag = "ExampleSlider",
@@ -38,7 +37,6 @@ ExampleSection:AddSlider({
 	Min = 0,
 	Max = 10,
 	Default = 5,
-	Color = Color3.fromRGB(9, 99, 195),
 	Increment = 0.5,
 	ValueName = "",
 	Flag = "ExampleSlider2",
@@ -122,6 +120,18 @@ ExampleSection:AddMultiDropdown({
 		print(table.concat(Values, ", "))
 	end
 })
+
+local SettingsTab = Window:MakeTab({
+	Name = "Settings",
+	Icon = "palette",
+	PremiumOnly = false
+})
+
+local SettingsSection = SettingsTab:AddSection({
+	Name = "Interface"
+})
+
+SettingsSection:AddSettingManager({})
 
 local ConfigTab = Window:MakeTab({
 	Name = "Config",
