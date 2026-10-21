@@ -924,15 +924,15 @@ function OrionLib:MakeNotification(NotificationConfig)
 			Parent = NotificationHolder
 		})
 
-		local NotificationFrame = SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(18, 18, 21), 0, 8), {
+		local NotificationFrame = SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(21, 21, 24), 0, 8), {
 			Parent = NotificationParent,
 			Size = UDim2.new(1, 0, 0, 0),
 			Position = UDim2.new(1, -55, 0, 0),
 			BackgroundTransparency = 0,
 			AutomaticSize = Enum.AutomaticSize.Y
 		}), {
-			MakeElement("Stroke", Color3.fromRGB(44, 44, 50), 1),
-			MakeElement("Padding", 12, 12, 12, 12),
+			MakeElement("Stroke", Color3.fromRGB(40, 40, 46), 1),
+			MakeElement("Padding", 14, 14, 14, 14),
 			SetProps(MakeElement("Image", NotificationConfig.Image), {
 				Size = UDim2.new(0, 20, 0, 20),
 				ImageColor3 = Color3.fromRGB(240, 240, 240),
@@ -950,7 +950,7 @@ function OrionLib:MakeNotification(NotificationConfig)
 				Font = Enum.Font.BuilderSansMedium,
 				Name = "Content",
 				AutomaticSize = Enum.AutomaticSize.Y,
-				TextColor3 = Color3.fromRGB(200, 200, 200),
+				TextColor3 = Color3.fromRGB(172, 172, 180),
 				TextWrapped = true
 			})
 		})
@@ -1292,7 +1292,7 @@ function OrionLib:MakeWindow(WindowConfig)
 		TabConfig.PremiumOnly = TabConfig.PremiumOnly or false
 
 		local TabFrame = SetChildren(SetProps(MakeElement("Button"), {
-			Size = UDim2.new(1, 0, 0, 30),
+			Size = UDim2.new(1, 0, 0, 32),
 			Parent = TabHolder
 		}), {
 			AddThemeObject(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 8), {
@@ -1303,7 +1303,7 @@ function OrionLib:MakeWindow(WindowConfig)
 			}), "Accent"),
 			AddThemeObject(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 2), {
 				AnchorPoint = Vector2.new(0, 0.5),
-				Size = UDim2.new(0, 3, 0, 14),
+				Size = UDim2.new(0, 3, 0, 16),
 				Position = UDim2.new(0, 0, 0.5, 0),
 				BackgroundTransparency = 1,
 				Name = "Pill"
@@ -1331,8 +1331,8 @@ function OrionLib:MakeWindow(WindowConfig)
 			Visible = false,
 			Name = "ItemContainer"
 		}), {
-			MakeElement("List", 0, 10),
-			MakeElement("Padding", 16, 12, 12, 16)
+			MakeElement("List", 0, 8),
+			MakeElement("Padding", 14, 14, 16, 14)
 		}), "Divider")
 
 		AddConnection(Container.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
@@ -1349,7 +1349,7 @@ function OrionLib:MakeWindow(WindowConfig)
 
 		if FirstTab then
 			FirstTab = false
-			TabFrame.Bg.BackgroundTransparency = 0.85
+			TabFrame.Bg.BackgroundTransparency = 0.9
 			TabFrame.Pill.BackgroundTransparency = 0
 			TabFrame.Ico.ImageColor3 = CurrentAccent()
 			TabFrame.Ico.ImageTransparency = 0
@@ -1386,7 +1386,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					ItemContainer.Visible = false
 				end
 			end
-			TweenService:Create(TabFrame.Bg, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0.85}):Play()
+			TweenService:Create(TabFrame.Bg, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0.9}):Play()
 			TweenService:Create(TabFrame.Pill, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
 			TweenService:Create(TabFrame.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0, ImageColor3 = CurrentAccent()}):Play()
 			TweenService:Create(TabFrame.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
@@ -1679,7 +1679,7 @@ function OrionLib:MakeWindow(WindowConfig)
 				local Slider = {Value = SliderConfig.Default, Save = SliderConfig.Save, Type = "Slider"}
 				local Dragging = false
 
-				local SliderDrag = SetChildren(SetProps(MakeElement("RoundFrame", SliderConfig.Color, 0, 3), {
+				local SliderDrag = SetChildren(SetProps(MakeElement("RoundFrame", SliderConfig.Color, 0, 2), {
 					Size = UDim2.new(0, 0, 1, 0)
 				}), {
 					SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 1, 0), {
@@ -1696,9 +1696,9 @@ function OrionLib:MakeWindow(WindowConfig)
 					Size = UDim2.new(1, -24, 0, 22),
 					Position = UDim2.new(0, 12, 0, 30)
 				}), {
-					SetChildren(AddThemeObject(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 3), {
+					SetChildren(AddThemeObject(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 2), {
 						AnchorPoint = Vector2.new(0, 0.5),
-						Size = UDim2.new(1, 0, 0, 6),
+						Size = UDim2.new(1, 0, 0, 4),
 						Position = UDim2.new(0, 0, 0.5, 0),
 						Name = "Track"
 					}), "Divider"), {
@@ -2714,13 +2714,18 @@ function OrionLib:MakeWindow(WindowConfig)
 					Position = UDim2.new(0, 2, 0, 3),
 					Font = Enum.Font.BuilderSansBold
 				}), "TextDark"),
+				AddThemeObject(SetProps(MakeElement("Frame"), {
+					Size = UDim2.new(1, 0, 0, 1),
+					Position = UDim2.new(0, 0, 0, 20),
+					BackgroundTransparency = 0.35
+				}), "Stroke"),
 				SetChildren(SetProps(MakeElement("TFrame"), {
 					AnchorPoint = Vector2.new(0, 0),
 					Size = UDim2.new(1, 0, 1, -24),
 					Position = UDim2.new(0, 0, 0, 23),
 					Name = "Holder"
 				}), {
-					MakeElement("List", 0, 10)
+					MakeElement("List", 0, 8)
 				}),
 			})
 
@@ -2779,12 +2784,6 @@ function OrionLib:MakeWindow(WindowConfig)
 		end
 		return ElementFunction
 	end
-
-	OrionLib:MakeNotification({
-		Name = "UI Library Upgrade",
-		Content = "New UI Library Available at sirius.menu/discord and sirius.menu/rayfield",
-		Time = 5
-	})
 
 	return TabFunction
 end
