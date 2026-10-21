@@ -943,7 +943,7 @@ function OrionLib:MakeNotification(NotificationConfig)
 				ImageColor3 = Color3.fromRGB(240, 240, 240),
 				Name = "Icon"
 			}),
-			SetProps(MakeElement("Label", NotificationConfig.Name, 15), {
+			SetProps(MakeElement("Label", NotificationConfig.Name, 14), {
 				Size = UDim2.new(1, -30, 0, 20),
 				Position = UDim2.new(0, 30, 0, 0),
 				Font = Enum.Font.GothamBold,
@@ -1180,6 +1180,31 @@ function OrionLib:MakeWindow(WindowConfig)
 		WindowIcon.Parent = MainWindow.TopBar
 	end
 
+	local Shadow = Create("ImageLabel", {
+		Name = "Shadow",
+		BackgroundTransparency = 1,
+		Image = "rbxassetid://6014261993",
+		ImageColor3 = Color3.fromRGB(0, 0, 0),
+		ImageTransparency = 0.4,
+		ScaleType = Enum.ScaleType.Slice,
+		SliceCenter = Rect.new(49, 49, 450, 450),
+		ZIndex = 0,
+		Parent = Orion
+	})
+
+	local function SyncShadow()
+		local Pos = MainWindow.Position
+		local Size = MainWindow.Size
+		Shadow.Position = UDim2.new(Pos.X.Scale, Pos.X.Offset - 28, Pos.Y.Scale, Pos.Y.Offset - 22)
+		Shadow.Size = UDim2.new(Size.X.Scale, Size.X.Offset + 56, Size.Y.Scale, Size.Y.Offset + 56)
+		Shadow.Visible = MainWindow.Visible
+	end
+
+	SyncShadow()
+	AddConnection(MainWindow:GetPropertyChangedSignal("Position"), SyncShadow)
+	AddConnection(MainWindow:GetPropertyChangedSignal("Size"), SyncShadow)
+	AddConnection(MainWindow:GetPropertyChangedSignal("Visible"), SyncShadow)
+
 	AddDraggingFunctionality(DragPoint, MainWindow)
 
 	AddConnection(CloseBtn.MouseButton1Up, function()
@@ -1307,7 +1332,7 @@ function OrionLib:MakeWindow(WindowConfig)
 			Visible = false,
 			Name = "ItemContainer"
 		}), {
-			MakeElement("List", 0, 8),
+			MakeElement("List", 0, 10),
 			MakeElement("Padding", 16, 12, 12, 16)
 		}), "Divider")
 
@@ -1447,7 +1472,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					Size = UDim2.new(1, 0, 0, 33),
 					Parent = ItemParent
 				}), {
-					AddThemeObject(SetProps(MakeElement("Label", ButtonConfig.Name, 15), {
+					AddThemeObject(SetProps(MakeElement("Label", ButtonConfig.Name, 14), {
 						Size = UDim2.new(1, -12, 1, 0),
 						Position = UDim2.new(0, 12, 0, 0),
 						Font = Enum.Font.GothamSemibold,
@@ -1549,7 +1574,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					Size = UDim2.new(1, 0, 0, 38),
 					Parent = ItemParent
 				}), {
-					AddThemeObject(SetProps(MakeElement("Label", ToggleConfig.Name, 15), {
+					AddThemeObject(SetProps(MakeElement("Label", ToggleConfig.Name, 14), {
 						Size = UDim2.new(1, -12, 1, 0),
 						Position = UDim2.new(0, 12, 0, 0),
 						Font = Enum.Font.GothamSemibold,
@@ -1685,7 +1710,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					Size = UDim2.new(1, 0, 0, 56),
 					Parent = ItemParent
 				}), {
-					AddThemeObject(SetProps(MakeElement("Label", SliderConfig.Name, 15), {
+					AddThemeObject(SetProps(MakeElement("Label", SliderConfig.Name, 14), {
 						Size = UDim2.new(1, -90, 0, 14),
 						Position = UDim2.new(0, 12, 0, 10),
 						Font = Enum.Font.GothamSemibold,
@@ -1996,7 +2021,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					Size = UDim2.new(1, 0, 0, 38),
 					Parent = ItemParent
 				}), {
-					AddThemeObject(SetProps(MakeElement("Label", BindConfig.Name, 15), {
+					AddThemeObject(SetProps(MakeElement("Label", BindConfig.Name, 14), {
 						Size = UDim2.new(1, -12, 1, 0),
 						Position = UDim2.new(0, 12, 0, 0),
 						Font = Enum.Font.GothamSemibold,
@@ -2122,7 +2147,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					Size = UDim2.new(1, 0, 0, 38),
 					Parent = ItemParent
 				}), {
-					AddThemeObject(SetProps(MakeElement("Label", TextboxConfig.Name, 15), {
+					AddThemeObject(SetProps(MakeElement("Label", TextboxConfig.Name, 14), {
 						Size = UDim2.new(1, -12, 1, 0),
 						Position = UDim2.new(0, 12, 0, 0),
 						Font = Enum.Font.GothamSemibold,
@@ -2249,7 +2274,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					Parent = ItemParent
 				}), {
 					SetProps(SetChildren(MakeElement("TFrame"), {
-						AddThemeObject(SetProps(MakeElement("Label", ColorpickerConfig.Name, 15), {
+						AddThemeObject(SetProps(MakeElement("Label", ColorpickerConfig.Name, 14), {
 							Size = UDim2.new(1, -12, 1, 0),
 							Position = UDim2.new(0, 12, 0, 0),
 							Font = Enum.Font.GothamSemibold,
@@ -2695,7 +2720,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					Position = UDim2.new(0, 0, 0, 23),
 					Name = "Holder"
 				}), {
-					MakeElement("List", 0, 8)
+					MakeElement("List", 0, 10)
 				}),
 			})
 
