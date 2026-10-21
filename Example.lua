@@ -89,10 +89,23 @@ ExampleSection:AddButton({
 	end
 })
 
-ExampleTab:AddMultiDropdown({
-	Name = "Multi Dropdown",
+ExampleSection:AddDropdown({
+	Name = "Example Dropdown",
+	Default = "Two",
+	Options = {"One", "Two", "Three", "Four", "Five", "Six", "Seven"},
+	Flag = "ExampleDropdown",
+	Save = true,
+	Callback = function(Value)
+		print("Example Dropdown:", Value)
+	end
+})
+
+ExampleSection:AddMultiDropdown({
+	Name = "Example Multi Dropdown",
 	Default = {"One", "Two"},
 	Options = {"One", "Two", "Three", "Four"},
+	Flag = "ExampleMultiDropdown",
+	Save = true,
 	Callback = function(Values)
 		print(table.concat(Values, ", "))
 	end
