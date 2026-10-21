@@ -26,23 +26,53 @@ local OrionLib = {
 	SaveCfg = false
 }
 
-local Icons = {}
-
-local Success, Response = pcall(function()
-	Icons = HttpService:JSONDecode(game:HttpGetAsync("https://raw.githubusercontent.com/evoincorp/lucideblox/master/src/modules/util/icons.json")).icons
+local Lucide
+pcall(function()
+	Lucide = loadstring(game:HttpGet("https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/icons.lua"))()
 end)
 
-if not Success then
-	warn("\nOrion Library - Failed to load Feather Icons. Error code: " .. Response .. "\n")
-end	
-
-local function GetIcon(IconName)
-	if Icons[IconName] ~= nil then
-		return Icons[IconName]
-	else
-		return nil
+local function ResolveIcon(Icon)
+	if type(Icon) == "number" then return "rbxassetid://" .. Icon end
+	if type(Icon) == "string" then
+		if string.match(Icon, "^rbxassetid://") or string.match(Icon, "^https?://") then return Icon end
+		if string.match(Icon, "^%d+$") then return "rbxassetid://" .. Icon end
+		local Name = string.lower(Icon)
+		if type(Lucide) == "function" then
+			local ok, Data = pcall(Lucide, Name)
+			if ok and type(Data) == "table" then
+				local Id = Data.id or Data.Id or Data[1]
+				local Size = Data.imageRectSize or Data.ImageRectSize or Data[2]
+				local Offset = Data.imageRectOffset or Data.imageRectPosition or Data.ImageRectOffset or Data[3]
+				if Id then return "rbxassetid://" .. tostring(Id), Offset, Size end
+			end
+		elseif type(Lucide) == "table" then
+			for _, Set in { Lucide["48px"], Lucide["256px"], Lucide } do
+				if type(Set) == "table" then
+					local Data = Set[Name]
+					if type(Data) == "table" and Data[1] then
+						return "rbxassetid://" .. tostring(Data[1]), Data[3], Data[2]
+					end
+				end
+			end
+		end
+		return Icon
 	end
-end   
+	return ""
+end
+
+local function ToVector2(Value)
+	if typeof(Value) == "Vector2" then return Value end
+	if type(Value) == "table" then return Vector2.new(Value[1] or Value.X or 0, Value[2] or Value.Y or 0) end
+	return Vector2.new(0, 0)
+end
+
+local function ApplyIcon(Object, Icon)
+	if not Icon or Icon == "" then return end
+	local Image, Offset, Size = ResolveIcon(Icon)
+	Object.Image = Image
+	if Offset then Object.ImageRectOffset = ToVector2(Offset) end
+	if Size then Object.ImageRectSize = ToVector2(Size) end
+end
 
 local Orion = Instance.new("ScreenGui")
 Orion.Name = "Orion"
@@ -370,13 +400,9 @@ end)
 
 CreateElement("Image", function(ImageID)
 	local ImageNew = Create("ImageLabel", {
-		Image = ImageID,
 		BackgroundTransparency = 1
 	})
-
-	if GetIcon(ImageID) ~= nil then
-		ImageNew.Image = GetIcon(ImageID)
-	end	
+	ApplyIcon(ImageNew, ImageID)
 
 	return ImageNew
 end)
@@ -794,10 +820,6 @@ function OrionLib:MakeWindow(WindowConfig)
 				Name = "Title"
 			}), "Text")
 		})
-
-		if GetIcon(TabConfig.Icon) ~= nil then
-			TabFrame.Ico.Image = GetIcon(TabConfig.Icon)
-		end	
 
 		local Container = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255, 255, 255), 5), {
 			Size = UDim2.new(1, -150, 1, -50),
@@ -1524,7 +1546,7 @@ function OrionLib:MakeWindow(WindowConfig)
 				local Colorpicker = {Value = ColorpickerConfig.Default, Toggled = false, Type = "Colorpicker", Save = ColorpickerConfig.Save}
 				local TouchMode = UserInputService.TouchEnabled
 				local HueWidth = TouchMode and 28 or 20
-				local OpenHeight = TouchMode and 188 or 148
+				local OpenHeight = TouchMode and 200 or 148
 
 				local ColorSelection = Create("ImageLabel", {
 					Size = UDim2.new(0, 18, 0, 18),
@@ -1636,54 +1658,70 @@ function OrionLib:MakeWindow(WindowConfig)
 					ColorpickerConfig.Callback(NewColor)
 				end
 
-				local function UpdateColorPicker()
-					Apply(Color3.fromHSV(ColorH, ColorS, ColorV))
-					SaveCfg(game.GameId)
-				end
-
 				local ColorDragging = false
 				local HueDragging = false
 				local ColorActive = nil
 				local HueActive = nil
+				local Pending = false
+
+				local function Push()
+					if Pending then
+						return
+					end
+					Pending = true
+					task.defer(function()
+						Pending = false
+						Apply(Color3.fromHSV(ColorH, ColorS, ColorV))
+					end)
+				end
 
 				local function UpdateColorFromInput(Input)
 					local Position = GetInputPosition(Input)
-					local ColorX = math.clamp(Position.X - Color.AbsolutePosition.X, 0, Color.AbsoluteSize.X) / Color.AbsoluteSize.X
-					local ColorY = math.clamp(Position.Y - Color.AbsolutePosition.Y, 0, Color.AbsoluteSize.Y) / Color.AbsoluteSize.Y
+					local Size = Color.AbsoluteSize
+					if Size.X <= 0 or Size.Y <= 0 then
+						return
+					end
+					local ColorX = math.clamp((Position.X - Color.AbsolutePosition.X) / Size.X, 0, 1)
+					local ColorY = math.clamp((Position.Y - Color.AbsolutePosition.Y) / Size.Y, 0, 1)
 					ColorSelection.Position = UDim2.new(ColorX, 0, ColorY, 0)
 					ColorS = ColorX
 					ColorV = 1 - ColorY
-					UpdateColorPicker()
+					Push()
 				end
 
 				local function UpdateHueFromInput(Input)
 					local Position = GetInputPosition(Input)
-					local HueY = math.clamp(Position.Y - Hue.AbsolutePosition.Y, 0, Hue.AbsoluteSize.Y) / Hue.AbsoluteSize.Y
+					local Size = Hue.AbsoluteSize
+					if Size.Y <= 0 then
+						return
+					end
+					local HueY = math.clamp((Position.Y - Hue.AbsolutePosition.Y) / Size.Y, 0, 1)
 					HueSelection.Position = UDim2.new(0.5, 0, HueY, 0)
 					ColorH = 1 - HueY
-					UpdateColorPicker()
+					Push()
 				end
 
-				local function StopColorDragging()
-					if not ColorDragging then
+				local function StopDragging()
+					if not (ColorDragging or HueDragging) then
 						return
 					end
 					ColorDragging = false
-					ColorActive = nil
-					LockScrolling(ColorpickerFrame, false)
-				end
-
-				local function StopHueDragging()
-					if not HueDragging then
-						return
-					end
 					HueDragging = false
+					ColorActive = nil
 					HueActive = nil
 					LockScrolling(ColorpickerFrame, false)
+					Apply(Color3.fromHSV(ColorH, ColorS, ColorV))
+					SaveCfg(game.GameId)
 				end
 
+				AddConnection(Click.MouseButton1Click, function()
+					if not Colorpicker.Toggled then
+						StopDragging()
+					end
+				end)
+
 				AddConnection(Color.InputBegan, function(Input)
-					if IsPointerStart(Input) then
+					if IsPointerStart(Input) and not ColorDragging and not HueDragging then
 						ColorDragging = true
 						ColorActive = Input
 						LockScrolling(ColorpickerFrame, true)
@@ -1692,7 +1730,7 @@ function OrionLib:MakeWindow(WindowConfig)
 				end)
 
 				AddConnection(Hue.InputBegan, function(Input)
-					if IsPointerStart(Input) then
+					if IsPointerStart(Input) and not ColorDragging and not HueDragging then
 						HueDragging = true
 						HueActive = Input
 						LockScrolling(ColorpickerFrame, true)
@@ -1701,20 +1739,16 @@ function OrionLib:MakeWindow(WindowConfig)
 				end)
 
 				AddConnection(UserInputService.InputChanged, function(Input)
-					if ColorDragging and (Input.UserInputType == Enum.UserInputType.MouseMovement or Input == ColorActive) then
+					if ColorDragging and (Input == ColorActive or (ColorActive.UserInputType == Enum.UserInputType.MouseButton1 and Input.UserInputType == Enum.UserInputType.MouseMovement)) then
 						UpdateColorFromInput(Input)
-					end
-					if HueDragging and (Input.UserInputType == Enum.UserInputType.MouseMovement or Input == HueActive) then
+					elseif HueDragging and (Input == HueActive or (HueActive.UserInputType == Enum.UserInputType.MouseButton1 and Input.UserInputType == Enum.UserInputType.MouseMovement)) then
 						UpdateHueFromInput(Input)
 					end
 				end)
 
 				AddConnection(UserInputService.InputEnded, function(Input)
-					if Input == ColorActive or (Input.UserInputType == Enum.UserInputType.MouseButton1 and ColorDragging) then
-						StopColorDragging()
-					end
-					if Input == HueActive or (Input.UserInputType == Enum.UserInputType.MouseButton1 and HueDragging) then
-						StopHueDragging()
+					if (ColorDragging and Input == ColorActive) or (HueDragging and Input == HueActive) or (Input.UserInputType == Enum.UserInputType.MouseButton1 and (ColorDragging or HueDragging)) then
+						StopDragging()
 					end
 				end)
 
