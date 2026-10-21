@@ -1930,7 +1930,7 @@ function OrionLib:MakeWindow(WindowConfig)
 						Position = UDim2.new(1, 0, 0.5, 0),
 						Name = "Knob"
 					}), {
-						SetProps(MakeElement("Stroke", Color3.fromRGB(11, 11, 13), 2), {})
+						AddThemeObject(MakeElement("Stroke", nil, 2), "Second")
 					})
 				})
 
@@ -1971,6 +1971,29 @@ function OrionLib:MakeWindow(WindowConfig)
 
 				AddHover(SliderFrame, SliderFrame)
 
+				local Knob = SliderDrag.Knob
+				local Track = SliderBar.Track
+				local Hovering = false
+
+				local function Animate()
+					local Theme = OrionLib.Themes[OrionLib.SelectedTheme]
+					local Info = TweenInfo.new(0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+					local KnobSize = Dragging and 18 or (Hovering and 16 or 14)
+					TweenService:Create(Knob, Info, {Size = UDim2.new(0, KnobSize, 0, KnobSize)}):Play()
+					TweenService:Create(Track, Info, {Size = UDim2.new(1, 0, 0, (Dragging or Hovering) and 6 or 4)}):Play()
+					TweenService:Create(SliderFrame.ValueLabel, Info, {TextColor3 = Dragging and Theme.Text or Theme.TextDark}):Play()
+				end
+
+				AddConnection(SliderFrame.MouseEnter, function()
+					Hovering = true
+					Animate()
+				end)
+
+				AddConnection(SliderFrame.MouseLeave, function()
+					Hovering = false
+					Animate()
+				end)
+
 				local ActiveInput = nil
 
 				local function SetFromInput(Input)
@@ -1986,6 +2009,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					Dragging = false
 					ActiveInput = nil
 					LockScrolling(SliderFrame, false)
+					Animate()
 				end
 
 				SliderBar.Active = true
@@ -1995,6 +2019,7 @@ function OrionLib:MakeWindow(WindowConfig)
 						Dragging = true
 						ActiveInput = Input
 						LockScrolling(SliderFrame, true)
+						Animate()
 						SetFromInput(Input)
 					end
 				end)
@@ -2016,7 +2041,7 @@ function OrionLib:MakeWindow(WindowConfig)
 
 				function Slider:Set(Value)
 					self.Value = math.clamp(Round(Value, SliderConfig.Increment), SliderConfig.Min, SliderConfig.Max)
-					TweenService:Create(SliderDrag,TweenInfo.new(.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{Size = UDim2.fromScale((self.Value - SliderConfig.Min) / (SliderConfig.Max - SliderConfig.Min), 1)}):Play()
+					TweenService:Create(SliderDrag, Dragging and TweenInfo.new(0.07, Enum.EasingStyle.Quad, Enum.EasingDirection.Out) or TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),{Size = UDim2.fromScale((self.Value - SliderConfig.Min) / (SliderConfig.Max - SliderConfig.Min), 1)}):Play()
 					SliderFrame.ValueLabel.Text = tostring(self.Value) .. " " .. SliderConfig.ValueName
 					SliderConfig.Callback(self.Value)
 				end
