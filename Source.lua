@@ -1050,12 +1050,12 @@ function OrionLib:MakeWindow(WindowConfig)
 	})
 
 	local DragPoint = SetProps(MakeElement("TFrame"), {
-		Size = UDim2.new(1, 0, 0, 56)
+		Size = UDim2.new(1, 0, 0, 50)
 	})
 
 	local WindowStuff = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 14), {
-		Size = UDim2.new(0, 176, 1, -56),
-		Position = UDim2.new(0, 0, 0, 56)
+		Size = UDim2.new(0, 160, 1, -50),
+		Position = UDim2.new(0, 0, 0, 50)
 	}), {
 		AddThemeObject(SetProps(MakeElement("Frame"), {
 			Size = UDim2.new(1, 0, 0, 10),
@@ -1114,9 +1114,9 @@ function OrionLib:MakeWindow(WindowConfig)
 
 	local WindowName = AddThemeObject(SetProps(MakeElement("Label", WindowConfig.Name, 14), {
 		Size = UDim2.new(1, -30, 2, 0),
-		Position = UDim2.new(0, 24, 0, -28),
+		Position = UDim2.new(0, 25, 0, -24),
 		Font = Enum.Font.GothamBold,
-		TextSize = 18
+		TextSize = 19
 	}), "Text")
 
 	local WindowTopBarLine = AddThemeObject(SetProps(MakeElement("Frame"), {
@@ -1124,21 +1124,21 @@ function OrionLib:MakeWindow(WindowConfig)
 		Position = UDim2.new(0, 0, 1, -1)
 	}), "Stroke")
 
-	local MainWindow = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 16), {
+	local MainWindow = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 14), {
 		Parent = Orion,
-		Position = UDim2.new(0.5, -340, 0.5, -210),
-		Size = UDim2.new(0, 680, 0, 420),
+		Position = UDim2.new(0.5, -320, 0.5, -182),
+		Size = UDim2.new(0, 640, 0, 364),
 		ClipsDescendants = true
 	}), {
 		SetChildren(SetProps(MakeElement("TFrame"), {
-			Size = UDim2.new(1, 0, 0, 56),
+			Size = UDim2.new(1, 0, 0, 50),
 			Name = "TopBar"
 		}), {
 			WindowName,
 			WindowTopBarLine,
 			AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 12), {
 				Size = UDim2.new(0, 70, 0, 30),
-				Position = UDim2.new(1, -88, 0, 13)
+				Position = UDim2.new(1, -90, 0, 10)
 			}), {
 				AddThemeObject(MakeElement("Stroke"), "Stroke"),
 				AddThemeObject(SetProps(MakeElement("Frame"), {
@@ -1154,10 +1154,10 @@ function OrionLib:MakeWindow(WindowConfig)
 	}), "Main")
 
 	if WindowConfig.ShowIcon then
-		WindowName.Position = UDim2.new(0, 50, 0, -28)
+		WindowName.Position = UDim2.new(0, 50, 0, -24)
 		local WindowIcon = SetProps(MakeElement("Image", WindowConfig.Icon), {
-			Size = UDim2.new(0, 22, 0, 22),
-			Position = UDim2.new(0, 24, 0, 17)
+			Size = UDim2.new(0, 20, 0, 20),
+			Position = UDim2.new(0, 25, 0, 15)
 		})
 		WindowIcon.Parent = MainWindow.TopBar
 	end
@@ -1273,7 +1273,7 @@ function OrionLib:MakeWindow(WindowConfig)
 		TabConfig.PremiumOnly = TabConfig.PremiumOnly or false
 
 		local TabFrame = SetChildren(SetProps(MakeElement("Button"), {
-			Size = UDim2.new(1, 0, 0, 36),
+			Size = UDim2.new(1, 0, 0, 30),
 			Parent = TabHolder
 		}), {
 			AddThemeObject(SetProps(MakeElement("Image", TabConfig.Icon), {
@@ -1293,14 +1293,14 @@ function OrionLib:MakeWindow(WindowConfig)
 		})
 
 		local Container = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255, 255, 255), 5), {
-			Size = UDim2.new(1, -176, 1, -56),
-			Position = UDim2.new(0, 176, 0, 56),
+			Size = UDim2.new(1, -160, 1, -50),
+			Position = UDim2.new(0, 160, 0, 50),
 			Parent = MainWindow,
 			Visible = false,
 			Name = "ItemContainer"
 		}), {
-			MakeElement("List", 0, 10),
-			MakeElement("Padding", 18, 16, 16, 18)
+			MakeElement("List", 0, 8),
+			MakeElement("Padding", 16, 12, 12, 16)
 		}), "Divider")
 
 		AddConnection(Container.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
@@ -1408,7 +1408,7 @@ function OrionLib:MakeWindow(WindowConfig)
 				})
 
 				local ButtonFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
-					Size = UDim2.new(1, 0, 0, 38),
+					Size = UDim2.new(1, 0, 0, 33),
 					Parent = ItemParent
 				}), {
 					AddThemeObject(SetProps(MakeElement("Label", ButtonConfig.Name, 15), {
@@ -1419,7 +1419,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					}), "Text"),
 					AddThemeObject(SetProps(MakeElement("Image", ButtonConfig.Icon), {
 						Size = UDim2.new(0, 20, 0, 20),
-						Position = UDim2.new(1, -32, 0, 9),
+						Position = UDim2.new(1, -30, 0, 7),
 					}), "TextDark"),
 					AddThemeObject(MakeElement("Stroke"), "Stroke"),
 					Click
