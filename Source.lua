@@ -162,13 +162,18 @@ end)
 
 local function AddDraggingFunctionality(DragPoint, Main)
 	pcall(function()
-		local Dragging, DragInput, MousePos, FramePos = false
+		local Dragging, DragInput, StartPos, FramePos = false
+		local function IsPointer(Input)
+			return Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch
+		end
+		local function IsMove(Input)
+			return Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch
+		end
 		DragPoint.InputBegan:Connect(function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+			if IsPointer(Input) then
 				Dragging = true
-				MousePos = Input.Position
+				StartPos = Input.Position
 				FramePos = Main.Position
-
 				Input.Changed:Connect(function()
 					if Input.UserInputState == Enum.UserInputState.End then
 						Dragging = false
@@ -177,14 +182,17 @@ local function AddDraggingFunctionality(DragPoint, Main)
 			end
 		end)
 		DragPoint.InputChanged:Connect(function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseMovement then
+			if IsMove(Input) then
 				DragInput = Input
 			end
 		end)
 		UserInputService.InputChanged:Connect(function(Input)
-			if Input == DragInput and Dragging then
-				local Delta = Input.Position - MousePos
-				TweenService:Create(Main, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position  = UDim2.new(FramePos.X.Scale,FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)}):Play()
+			if Dragging and (Input == DragInput or Input.UserInputType == Enum.UserInputType.MouseMovement) then
+				local Delta = Input.Position - StartPos
+				local Screen = Main.Parent and Main.Parent.AbsoluteSize or Vector2.new(1920, 1080)
+				local X = math.clamp(FramePos.X.Offset + Delta.X, -FramePos.X.Scale * Screen.X - (Main.AbsoluteSize.X - 80), Screen.X - FramePos.X.Scale * Screen.X - 80)
+				local Y = math.clamp(FramePos.Y.Offset + Delta.Y, -FramePos.Y.Scale * Screen.Y, Screen.Y - FramePos.Y.Scale * Screen.Y - 50)
+				TweenService:Create(Main, TweenInfo.new(0.07, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(FramePos.X.Scale, X, FramePos.Y.Scale, Y)}):Play()
 			end
 		end)
 	end)
