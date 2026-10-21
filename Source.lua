@@ -1153,7 +1153,7 @@ function OrionLib:MakeWindow(WindowConfig)
 		}),
 		DragPoint,
 		WindowStuff,
-		AddThemeObject(MakeElement("Stroke"), "Stroke")
+		AddThemeObject(SetProps(MakeElement("Stroke"), {Transparency = 0.35}), "Stroke")
 	}), "Main")
 
 	if WindowConfig.ShowIcon then
@@ -1164,23 +1164,6 @@ function OrionLib:MakeWindow(WindowConfig)
 		})
 		WindowIcon.Parent = MainWindow.TopBar
 	end
-
-	local TopAccent = Create("Frame", {
-		Name = "AccentLine",
-		Size = UDim2.new(1, 0, 0, 2),
-		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-		BorderSizePixel = 0,
-		Parent = MainWindow
-	}, {
-		Create("UIGradient", {
-			Name = "Gradient",
-			Color = AccentSequence(CurrentAccent())
-		})
-	})
-
-	table.insert(OrionLib.AccentHooks, function(Color)
-		TopAccent.Gradient.Color = AccentSequence(Color)
-	end)
 
 	AddDraggingFunctionality(DragPoint, MainWindow)
 
