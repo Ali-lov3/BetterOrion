@@ -1318,12 +1318,16 @@ function OrionLib:MakeWindow(WindowConfig)
 		table.insert(OrionLib.AccentHooks, function(Color)
 			TabFrame.Bg.BackgroundColor3 = Color
 			TabFrame.Pill.BackgroundColor3 = Color
+			if TabFrame.Pill.BackgroundTransparency < 0.5 then
+				TabFrame.Ico.ImageColor3 = Color
+			end
 		end)
 
 		if FirstTab then
 			FirstTab = false
 			TabFrame.Bg.BackgroundTransparency = 0.85
 			TabFrame.Pill.BackgroundTransparency = 0
+			TabFrame.Ico.ImageColor3 = CurrentAccent()
 			TabFrame.Ico.ImageTransparency = 0
 			TabFrame.Title.TextTransparency = 0
 			TabFrame.Title.Font = Enum.Font.GothamBold
@@ -1346,6 +1350,7 @@ function OrionLib:MakeWindow(WindowConfig)
 			for _, Tab in next, TabHolder:GetChildren() do
 				if Tab:IsA("TextButton") then
 					Tab.Title.Font = Enum.Font.GothamMedium
+					TweenService:Create(Tab.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Text}):Play()
 					TweenService:Create(Tab.Bg, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
 					TweenService:Create(Tab.Pill, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
 					TweenService:Create(Tab.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0.4}):Play()
@@ -1359,7 +1364,7 @@ function OrionLib:MakeWindow(WindowConfig)
 			end
 			TweenService:Create(TabFrame.Bg, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0.85}):Play()
 			TweenService:Create(TabFrame.Pill, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
-			TweenService:Create(TabFrame.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0}):Play()
+			TweenService:Create(TabFrame.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0, ImageColor3 = CurrentAccent()}):Play()
 			TweenService:Create(TabFrame.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
 			TabFrame.Title.Font = Enum.Font.GothamBold
 			Container.Visible = true
