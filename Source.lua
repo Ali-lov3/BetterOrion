@@ -1325,6 +1325,7 @@ function OrionLib:MakeWindow(WindowConfig)
 				ToggleConfig.Color = ToggleConfig.Color or Color3.fromRGB(9, 99, 195)
 				ToggleConfig.Flag = ToggleConfig.Flag or nil
 				ToggleConfig.Save = ToggleConfig.Save or false
+				ToggleConfig.Type = string.lower(tostring(ToggleConfig.Type or "checkbox")) == "pill" and "Pill" or "Checkbox"
 
 				local Toggle = {Value = ToggleConfig.Default, Save = ToggleConfig.Save}
 
@@ -1332,24 +1333,45 @@ function OrionLib:MakeWindow(WindowConfig)
 					Size = UDim2.new(1, 0, 1, 0)
 				})
 
-				local ToggleBox = SetChildren(SetProps(MakeElement("RoundFrame", ToggleConfig.Color, 0, 4), {
-					Size = UDim2.new(0, 24, 0, 24),
-					Position = UDim2.new(1, -24, 0.5, 0),
-					AnchorPoint = Vector2.new(0.5, 0.5)
-				}), {
-					SetProps(MakeElement("Stroke"), {
-						Color = ToggleConfig.Color,
-						Name = "Stroke",
-						Transparency = 0.5
-					}),
-					SetProps(MakeElement("Image", "rbxassetid://3944680095"), {
-						Size = UDim2.new(0, 20, 0, 20),
-						AnchorPoint = Vector2.new(0.5, 0.5),
-						Position = UDim2.new(0.5, 0, 0.5, 0),
-						ImageColor3 = Color3.fromRGB(255, 255, 255),
-						Name = "Ico"
-					}),
-				})
+				local ToggleBox
+				if ToggleConfig.Type == "Pill" then
+					ToggleBox = SetChildren(SetProps(MakeElement("RoundFrame", ToggleConfig.Color, 1, 0), {
+						Size = UDim2.new(0, 40, 0, 20),
+						Position = UDim2.new(1, -12, 0.5, 0),
+						AnchorPoint = Vector2.new(1, 0.5)
+					}), {
+						SetProps(MakeElement("Stroke"), {
+							Color = ToggleConfig.Color,
+							Name = "Stroke",
+							Transparency = 0.5
+						}),
+						SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 1, 0), {
+							Size = UDim2.new(0, 14, 0, 14),
+							Position = UDim2.new(0, 3, 0.5, 0),
+							AnchorPoint = Vector2.new(0, 0.5),
+							Name = "Knob"
+						})
+					})
+				else
+					ToggleBox = SetChildren(SetProps(MakeElement("RoundFrame", ToggleConfig.Color, 0, 4), {
+						Size = UDim2.new(0, 24, 0, 24),
+						Position = UDim2.new(1, -24, 0.5, 0),
+						AnchorPoint = Vector2.new(0.5, 0.5)
+					}), {
+						SetProps(MakeElement("Stroke"), {
+							Color = ToggleConfig.Color,
+							Name = "Stroke",
+							Transparency = 0.5
+						}),
+						SetProps(MakeElement("Image", "rbxassetid://3944680095"), {
+							Size = UDim2.new(0, 20, 0, 20),
+							AnchorPoint = Vector2.new(0.5, 0.5),
+							Position = UDim2.new(0.5, 0, 0.5, 0),
+							ImageColor3 = Color3.fromRGB(255, 255, 255),
+							Name = "Ico"
+						}),
+					})
+				end
 
 				local ToggleFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 5), {
 					Size = UDim2.new(1, 0, 0, 38),
@@ -1370,7 +1392,14 @@ function OrionLib:MakeWindow(WindowConfig)
 					Toggle.Value = Value
 					TweenService:Create(ToggleBox, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Toggle.Value and ToggleConfig.Color or OrionLib.Themes.Default.Divider}):Play()
 					TweenService:Create(ToggleBox.Stroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = Toggle.Value and ToggleConfig.Color or OrionLib.Themes.Default.Stroke}):Play()
-					TweenService:Create(ToggleBox.Ico, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = Toggle.Value and 0 or 1, Size = Toggle.Value and UDim2.new(0, 20, 0, 20) or UDim2.new(0, 8, 0, 8)}):Play()
+					if ToggleConfig.Type == "Pill" then
+						TweenService:Create(ToggleBox.Knob, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+							Position = Toggle.Value and UDim2.new(1, -17, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
+							BackgroundColor3 = Toggle.Value and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(170, 170, 170)
+						}):Play()
+					else
+						TweenService:Create(ToggleBox.Ico, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = Toggle.Value and 0 or 1, Size = Toggle.Value and UDim2.new(0, 20, 0, 20) or UDim2.new(0, 8, 0, 8)}):Play()
+					end
 					ToggleConfig.Callback(Toggle.Value)
 				end    
 
@@ -1386,8 +1415,8 @@ function OrionLib:MakeWindow(WindowConfig)
 
 				AddConnection(Click.MouseButton1Up, function()
 					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
-					SaveCfg(game.GameId)
 					Toggle:Set(not Toggle.Value)
+					SaveCfg(game.GameId)
 				end)
 
 				AddConnection(Click.MouseButton1Down, function()

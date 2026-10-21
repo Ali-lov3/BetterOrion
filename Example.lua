@@ -70,11 +70,23 @@ ExampleSection:AddColorpicker({
 
 ExampleSection:AddToggle({
 	Name = "Example Toggle",
+	Type = "Checkbox",
 	Default = false,
 	Flag = "ExampleToggle",
 	Save = true,
 	Callback = function(Value)
 		print("Example Toggle:", Value)
+	end
+})
+
+ExampleSection:AddToggle({
+	Name = "Example Pill Toggle",
+	Type = "Pill",
+	Default = false,
+	Flag = "ExamplePillToggle",
+	Save = true,
+	Callback = function(Value)
+		print("Example Pill Toggle:", Value)
 	end
 })
 
