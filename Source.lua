@@ -1131,10 +1131,14 @@ function OrionLib:MakeWindow(WindowConfig)
 		Size = UDim2.new(0, 640, 0, 364),
 		ClipsDescendants = true
 	}), {
-		AddThemeObject(SetChildren(SetProps(MakeElement("Frame"), {
+		AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
 			Size = UDim2.new(1, 0, 0, 50),
 			Name = "TopBar"
 		}), {
+			AddThemeObject(SetProps(MakeElement("Frame"), {
+				Size = UDim2.new(1, 0, 0, 12),
+				Position = UDim2.new(0, 0, 1, -12)
+			}), "Second"),
 			WindowName,
 			WindowTopBarLine,
 			AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 12), {
@@ -1314,6 +1318,18 @@ function OrionLib:MakeWindow(WindowConfig)
 			Container.Visible = true
 		end
 
+		AddConnection(TabFrame.MouseEnter, function()
+			if TabFrame.Bg.BackgroundTransparency > 0.95 then
+				TweenService:Create(TabFrame.Bg, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 0.94}):Play()
+			end
+		end)
+
+		AddConnection(TabFrame.MouseLeave, function()
+			if TabFrame.Bg.BackgroundTransparency > 0.9 then
+				TweenService:Create(TabFrame.Bg, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
+			end
+		end)
+
 		AddConnection(TabFrame.MouseButton1Click, function()
 			for _, Tab in next, TabHolder:GetChildren() do
 				if Tab:IsA("TextButton") then
@@ -1429,10 +1445,12 @@ function OrionLib:MakeWindow(WindowConfig)
 				}), "Second")
 
 				AddConnection(Click.MouseEnter, function()
+					TweenService:Create(ButtonFrame:FindFirstChildOfClass("UIStroke"), TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = CurrentAccent()}):Play()
 					TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
 				end)
 
 				AddConnection(Click.MouseLeave, function()
+					TweenService:Create(ButtonFrame:FindFirstChildOfClass("UIStroke"), TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = OrionLib.Themes[OrionLib.SelectedTheme].Stroke}):Play()
 					TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Second}):Play()
 				end)
 
@@ -2641,13 +2659,23 @@ function OrionLib:MakeWindow(WindowConfig)
 		function ElementFunction:AddSection(SectionConfig)
 			SectionConfig.Name = SectionConfig.Name or "Section"
 
+			local SectionBar = AddThemeObject(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 2), {
+				Size = UDim2.new(0, 3, 0, 11),
+				Position = UDim2.new(0, 0, 0, 5)
+			}), "Accent")
+
+			table.insert(OrionLib.AccentHooks, function(Color)
+				SectionBar.BackgroundColor3 = Color
+			end)
+
 			local SectionFrame = SetChildren(SetProps(MakeElement("TFrame"), {
 				Size = UDim2.new(1, 0, 0, 26),
 				Parent = Container
 			}), {
+				SectionBar,
 				AddThemeObject(SetProps(MakeElement("Label", string.upper(SectionConfig.Name), 11), {
 					Size = UDim2.new(1, -12, 0, 16),
-					Position = UDim2.new(0, 2, 0, 3),
+					Position = UDim2.new(0, 11, 0, 3),
 					Font = Enum.Font.GothamBold
 				}), "TextDark"),
 				SetChildren(SetProps(MakeElement("TFrame"), {
