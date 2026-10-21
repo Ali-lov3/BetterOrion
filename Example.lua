@@ -111,4 +111,16 @@ ExampleSection:AddMultiDropdown({
 	end
 })
 
+local ConfigTab = Window:MakeTab({
+	Name = "Config",
+	Icon = "settings",
+	PremiumOnly = false
+})
+
+local ConfigSection = ConfigTab:AddSection({
+	Name = "Config Manager"
+})
+
+ConfigSection:AddConfigManager({})
+
 OrionLib:Init()

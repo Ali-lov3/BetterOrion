@@ -271,36 +271,162 @@ end
 
 local function LoadCfg(Config)
 	local Data = HttpService:JSONDecode(Config)
-	table.foreach(Data, function(a,b)
+	for a, b in pairs(Data) do
 		if OrionLib.Flags[a] then
-			spawn(function() 
+			spawn(function()
 				if OrionLib.Flags[a].Type == "Colorpicker" then
 					OrionLib.Flags[a]:Set(UnpackColor(b))
 				else
 					OrionLib.Flags[a]:Set(b)
-				end    
+				end
 			end)
 		else
-			warn("Orion Library Config Loader - Could not find ", a ,b)
+			warn("Orion Library Config Loader - Could not find ", a, b)
 		end
-	end)
+	end
 end
 
-local function SaveCfg(Name)
-	if not OrionLib.SaveCfg then
-		return
-	end
+local function BuildCfgData()
 	local Data = {}
-	for i,v in pairs(OrionLib.Flags) do
+	for i, v in pairs(OrionLib.Flags) do
 		if v.Save then
 			if v.Type == "Colorpicker" then
 				Data[i] = PackColor(v.Value)
 			else
 				Data[i] = v.Value
 			end
-		end	
+		end
 	end
-	writefile(OrionLib.Folder .. "/" .. Name .. ".txt", tostring(HttpService:JSONEncode(Data)))
+	return Data
+end
+
+local function SaveCfg(Name)
+	if not OrionLib.SaveCfg then
+		return
+	end
+	writefile(OrionLib.Folder .. "/" .. Name .. ".txt", HttpService:JSONEncode(BuildCfgData()))
+end
+
+local ConfigManager = {}
+OrionLib.ConfigManager = ConfigManager
+
+local function CleanConfigName(Name)
+	Name = tostring(Name or "")
+	Name = string.gsub(Name, "[^%w _%-]", "")
+	Name = string.gsub(Name, "^%s+", "")
+	Name = string.gsub(Name, "%s+$", "")
+	return Name
+end
+
+local function ConfigDir()
+	return OrionLib.Folder .. "/Configs"
+end
+
+local function ConfigPath(Name)
+	return ConfigDir() .. "/" .. Name .. ".json"
+end
+
+local function AutoloadPath()
+	return OrionLib.Folder .. "/autoload.txt"
+end
+
+local function EnsureConfigDirs()
+	if not isfolder(OrionLib.Folder) then
+		makefolder(OrionLib.Folder)
+	end
+	if not isfolder(ConfigDir()) then
+		makefolder(ConfigDir())
+	end
+end
+
+function ConfigManager:List()
+	local Names = {}
+	local Success, Files = pcall(function()
+		EnsureConfigDirs()
+		return listfiles(ConfigDir())
+	end)
+	if Success and type(Files) == "table" then
+		for _, Path in ipairs(Files) do
+			local Name = string.match(Path, "([^/\\]+)%.json$")
+			if Name then
+				table.insert(Names, Name)
+			end
+		end
+	end
+	table.sort(Names)
+	return Names
+end
+
+function ConfigManager:Save(Name)
+	Name = CleanConfigName(Name)
+	if Name == "" then
+		return false, "Invalid config name"
+	end
+	return pcall(function()
+		EnsureConfigDirs()
+		writefile(ConfigPath(Name), HttpService:JSONEncode(BuildCfgData()))
+	end)
+end
+
+function ConfigManager:Load(Name)
+	Name = CleanConfigName(Name)
+	if Name == "" then
+		return false, "Invalid config name"
+	end
+	return pcall(function()
+		if not isfile(ConfigPath(Name)) then
+			error("Config not found", 0)
+		end
+		LoadCfg(readfile(ConfigPath(Name)))
+	end)
+end
+
+function ConfigManager:GetAutoload()
+	local Success, Name = pcall(function()
+		if isfile(AutoloadPath()) then
+			return readfile(AutoloadPath())
+		end
+	end)
+	if Success and type(Name) == "string" and Name ~= "" then
+		return Name
+	end
+	return nil
+end
+
+function ConfigManager:SetAutoload(Name)
+	Name = CleanConfigName(Name)
+	if Name == "" then
+		return false, "Invalid config name"
+	end
+	return pcall(function()
+		EnsureConfigDirs()
+		writefile(AutoloadPath(), Name)
+	end)
+end
+
+function ConfigManager:ClearAutoload()
+	return pcall(function()
+		if isfile(AutoloadPath()) then
+			delfile(AutoloadPath())
+		end
+	end)
+end
+
+function ConfigManager:Delete(Name)
+	Name = CleanConfigName(Name)
+	if Name == "" then
+		return false, "Invalid config name"
+	end
+	local Success, Err = pcall(function()
+		if not isfile(ConfigPath(Name)) then
+			error("Config not found", 0)
+		end
+		delfile(ConfigPath(Name))
+	end)
+	if Success and ConfigManager:GetAutoload() == Name then
+		ConfigManager:ClearAutoload()
+	end
+	return Success, Err
 end
 
 local WhitelistedMouse = {Enum.UserInputType.MouseButton1, Enum.UserInputType.MouseButton2,Enum.UserInputType.MouseButton3}
@@ -708,19 +834,25 @@ function OrionLib:MakeNotification(NotificationConfig)
 end    
 
 function OrionLib:Init()
-	if OrionLib.SaveCfg then	
-		pcall(function()
-			if isfile(OrionLib.Folder .. "/" .. game.GameId .. ".txt") then
-				LoadCfg(readfile(OrionLib.Folder .. "/" .. game.GameId .. ".txt"))
-				OrionLib:MakeNotification({
-					Name = "Configuration",
-					Content = "Auto-loaded configuration for the game " .. game.GameId .. ".",
-					Time = 5
-				})
-			end
-		end)		
-	end	
-end	
+	pcall(function()
+		local Auto = ConfigManager:GetAutoload()
+		if Auto and isfile(ConfigPath(Auto)) then
+			LoadCfg(readfile(ConfigPath(Auto)))
+			OrionLib:MakeNotification({
+				Name = "Configuration",
+				Content = "Auto-loaded config " .. Auto .. ".",
+				Time = 5
+			})
+		elseif OrionLib.SaveCfg and isfile(OrionLib.Folder .. "/" .. game.GameId .. ".txt") then
+			LoadCfg(readfile(OrionLib.Folder .. "/" .. game.GameId .. ".txt"))
+			OrionLib:MakeNotification({
+				Name = "Configuration",
+				Content = "Auto-loaded configuration for the game " .. game.GameId .. ".",
+				Time = 5
+			})
+		end
+	end)
+end
 
 function OrionLib:MakeWindow(WindowConfig)
 	local FirstTab = true
@@ -769,11 +901,14 @@ function OrionLib:MakeWindow(WindowConfig)
 		end
 	end)
 
-	if WindowConfig.SaveConfig then
+	pcall(function()
 		if not isfolder(WindowConfig.ConfigFolder) then
 			makefolder(WindowConfig.ConfigFolder)
-		end	
-	end
+		end
+		if not isfolder(WindowConfig.ConfigFolder .. "/Configs") then
+			makefolder(WindowConfig.ConfigFolder .. "/Configs")
+		end
+	end)
 
 	local TabHolder = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255, 255, 255), 4), {
 		Size = UDim2.new(1, 0, 1, -50)
@@ -1987,6 +2122,154 @@ function OrionLib:MakeWindow(WindowConfig)
 				end
 				return Colorpicker
 			end  
+			function ElementFunction:AddConfigManager(ManagerConfig)
+				ManagerConfig = ManagerConfig or {}
+
+				local Manager = {}
+				local Selected = nil
+				local NewName = ""
+				local ConfigDropdown
+				local AutoLabel
+
+				local function Notify(Content)
+					OrionLib:MakeNotification({
+						Name = "Config Manager",
+						Content = Content,
+						Time = 4
+					})
+				end
+
+				local function UpdateAutoLabel()
+					AutoLabel:Set("Autoload: " .. (ConfigManager:GetAutoload() or "none"))
+				end
+
+				function Manager:Refresh()
+					local Names = ConfigManager:List()
+					ConfigDropdown:Refresh(Names, true)
+					if Selected and not table.find(Names, Selected) then
+						Selected = nil
+						ConfigDropdown:Set("")
+					end
+					UpdateAutoLabel()
+				end
+
+				ElementFunction:AddTextbox({
+					Name = "Config Name",
+					Default = "",
+					Callback = function(Text)
+						NewName = Text
+					end
+				})
+
+				ElementFunction:AddButton({
+					Name = "Create Config",
+					Callback = function()
+						local Name = CleanConfigName(NewName)
+						if Name == "" then
+							Notify("Enter a valid config name first.")
+							return
+						end
+						local Success, Err = ConfigManager:Save(Name)
+						if Success then
+							Notify("Created config " .. Name .. ".")
+							Manager:Refresh()
+							Selected = Name
+							ConfigDropdown:Set(Name)
+						else
+							Notify("Could not create config: " .. tostring(Err))
+						end
+					end
+				})
+
+				ConfigDropdown = ElementFunction:AddDropdown({
+					Name = "Configs",
+					Default = "",
+					Options = ConfigManager:List(),
+					Callback = function(Value)
+						Selected = Value
+					end
+				})
+
+				ElementFunction:AddButton({
+					Name = "Save Config",
+					Callback = function()
+						if not Selected then
+							Notify("Select a config first.")
+							return
+						end
+						local Success, Err = ConfigManager:Save(Selected)
+						Notify(Success and ("Saved config " .. Selected .. ".") or ("Could not save config: " .. tostring(Err)))
+					end
+				})
+
+				ElementFunction:AddButton({
+					Name = "Load Config",
+					Callback = function()
+						if not Selected then
+							Notify("Select a config first.")
+							return
+						end
+						local Success, Err = ConfigManager:Load(Selected)
+						Notify(Success and ("Loaded config " .. Selected .. ".") or ("Could not load config: " .. tostring(Err)))
+					end
+				})
+
+				ElementFunction:AddButton({
+					Name = "Delete Config",
+					Callback = function()
+						if not Selected then
+							Notify("Select a config first.")
+							return
+						end
+						local Deleted = Selected
+						local Success, Err = ConfigManager:Delete(Deleted)
+						if Success then
+							Notify("Deleted config " .. Deleted .. ".")
+							Manager:Refresh()
+						else
+							Notify("Could not delete config: " .. tostring(Err))
+						end
+					end
+				})
+
+				ElementFunction:AddButton({
+					Name = "Set Autoload",
+					Callback = function()
+						if not Selected then
+							Notify("Select a config first.")
+							return
+						end
+						local Success, Err = ConfigManager:SetAutoload(Selected)
+						if Success then
+							Notify(Selected .. " will load automatically.")
+							UpdateAutoLabel()
+						else
+							Notify("Could not set autoload: " .. tostring(Err))
+						end
+					end
+				})
+
+				ElementFunction:AddButton({
+					Name = "Clear Autoload",
+					Callback = function()
+						ConfigManager:ClearAutoload()
+						Notify("Autoload cleared.")
+						UpdateAutoLabel()
+					end
+				})
+
+				ElementFunction:AddButton({
+					Name = "Refresh List",
+					Callback = function()
+						Manager:Refresh()
+					end
+				})
+
+				AutoLabel = ElementFunction:AddLabel("Autoload: none")
+				UpdateAutoLabel()
+
+				return Manager
+			end
 			return ElementFunction   
 		end	
 
