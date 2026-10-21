@@ -1205,6 +1205,10 @@ function OrionLib:MakeWindow(WindowConfig)
 	AddConnection(MainWindow:GetPropertyChangedSignal("Size"), SyncShadow)
 	AddConnection(MainWindow:GetPropertyChangedSignal("Visible"), SyncShadow)
 
+	local FinalPosition = MainWindow.Position
+	MainWindow.Position = FinalPosition + UDim2.new(0, 0, 0, 16)
+	TweenService:Create(MainWindow, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = FinalPosition}):Play()
+
 	AddDraggingFunctionality(DragPoint, MainWindow)
 
 	AddConnection(CloseBtn.MouseButton1Up, function()
