@@ -1237,24 +1237,39 @@ function OrionLib:MakeWindow(WindowConfig)
 		end
 	end)
 
+	local CloseSearch = function() end
+	local MinimizeBusy = false
+	local FullSize = UDim2.new(0, 640, 0, 364)
+
 	AddConnection(MinimizeBtn.MouseButton1Up, function()
+		if MinimizeBusy then
+			return
+		end
+		MinimizeBusy = true
+		local Info = TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+		MainWindow.ClipsDescendants = true
 		if Minimized then
-			TweenService:Create(MainWindow, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 640, 0, 364)}):Play()
-			MinimizeBtn.Ico.Image = "rbxassetid://7072719338"
-			wait(.02)
-			MainWindow.ClipsDescendants = false
 			WindowStuff.Visible = true
-			WindowTopBarLine.Visible = true
+			MinimizeBtn.Ico.Image = "rbxassetid://7072719338"
+			TweenService:Create(MainWindow, Info, {Size = FullSize}):Play()
+			task.delay(0.25, function()
+				WindowTopBarLine.Visible = true
+			end)
 		else
-			MainWindow.ClipsDescendants = true
+			CloseSearch()
 			WindowTopBarLine.Visible = false
 			MinimizeBtn.Ico.Image = "rbxassetid://7072720870"
-
-			TweenService:Create(MainWindow, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, WindowName.TextBounds.X + 140, 0, 50)}):Play()
-			wait(0.1)
-			WindowStuff.Visible = false
+			TweenService:Create(MainWindow, Info, {Size = UDim2.new(0, WindowName.TextBounds.X + 140, 0, 50)}):Play()
+			task.delay(0.4, function()
+				if Minimized then
+					WindowStuff.Visible = false
+				end
+			end)
 		end
 		Minimized = not Minimized
+		task.delay(0.45, function()
+			MinimizeBusy = false
+		end)
 	end)
 
 	local function LoadSequence()
@@ -1477,6 +1492,12 @@ function OrionLib:MakeWindow(WindowConfig)
 		end
 		Popup.Size = UDim2.new(0, 240, 0, Count * 30 + (Count - 1) * 2 + 8)
 		Popup.Visible = true
+	end
+
+	CloseSearch = function()
+		SearchBox.Text = ""
+		SearchBox:ReleaseFocus()
+		Popup.Visible = false
 	end
 
 	AddConnection(SearchBox:GetPropertyChangedSignal("Text"), function()
