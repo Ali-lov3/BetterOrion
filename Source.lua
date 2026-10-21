@@ -13,13 +13,13 @@ local OrionLib = {
 	Flags = {},
 	Themes = {
 		Default = {
-			Main = Color3.fromRGB(13, 13, 17),
-			Second = Color3.fromRGB(20, 20, 26),
-			Stroke = Color3.fromRGB(38, 38, 48),
-			Divider = Color3.fromRGB(32, 32, 41),
-			Text = Color3.fromRGB(243, 243, 248),
-			TextDark = Color3.fromRGB(136, 136, 154),
-			Accent = Color3.fromRGB(112, 116, 255)
+			Main = Color3.fromRGB(11, 11, 13),
+			Second = Color3.fromRGB(18, 18, 21),
+			Stroke = Color3.fromRGB(36, 36, 41),
+			Divider = Color3.fromRGB(28, 28, 32),
+			Text = Color3.fromRGB(236, 236, 238),
+			TextDark = Color3.fromRGB(122, 122, 130),
+			Accent = Color3.fromRGB(232, 84, 112)
 		}
 	},
 	ThemeOrder = {"Default"},
@@ -569,7 +569,7 @@ CreateElement("Stroke", function(Color, Thickness)
 	local Stroke = Create("UIStroke", {
 		Color = Color or Color3.fromRGB(255, 255, 255),
 		Thickness = Thickness or 1,
-		Transparency = 0.2
+		Transparency = 0
 	})
 	return Stroke
 end)
@@ -692,7 +692,7 @@ local function AccentPair(Color)
 end
 
 local function AccentSequence(Color)
-	return ColorSequence.new(Color, AccentPair(Color))
+	return ColorSequence.new(Color)
 end
 
 local function DropdownTween(Object, Props, Time)
@@ -761,7 +761,7 @@ local function BuildDropdown(ItemParent, Name)
 		Visible = false
 	}), "Stroke")
 
-	local Frame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
+	local Frame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 7), {
 		Size = UDim2.new(1, 0, 0, DropdownHeader),
 		Parent = ItemParent,
 		ClipsDescendants = true
@@ -917,14 +917,14 @@ function OrionLib:MakeNotification(NotificationConfig)
 			Parent = NotificationHolder
 		})
 
-		local NotificationFrame = SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(20, 20, 26), 0, 12), {
+		local NotificationFrame = SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(18, 18, 21), 0, 8), {
 			Parent = NotificationParent,
 			Size = UDim2.new(1, 0, 0, 0),
 			Position = UDim2.new(1, -55, 0, 0),
 			BackgroundTransparency = 0,
 			AutomaticSize = Enum.AutomaticSize.Y
 		}), {
-			MakeElement("Stroke", Color3.fromRGB(48, 48, 60), 1),
+			MakeElement("Stroke", Color3.fromRGB(44, 44, 50), 1),
 			MakeElement("Padding", 12, 12, 12, 12),
 			SetProps(MakeElement("Image", NotificationConfig.Image), {
 				Size = UDim2.new(0, 20, 0, 20),
@@ -1054,7 +1054,7 @@ function OrionLib:MakeWindow(WindowConfig)
 		Size = UDim2.new(1, 0, 0, 50)
 	})
 
-	local WindowStuff = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 14), {
+	local WindowStuff = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
 		Size = UDim2.new(0, 160, 1, -50),
 		Position = UDim2.new(0, 0, 0, 50)
 	}), {
@@ -1125,7 +1125,7 @@ function OrionLib:MakeWindow(WindowConfig)
 		Position = UDim2.new(0, 0, 1, -1)
 	}), "Stroke")
 
-	local MainWindow = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 14), {
+	local MainWindow = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
 		Parent = Orion,
 		Position = UDim2.new(0.5, -320, 0.5, -182),
 		Size = UDim2.new(0, 640, 0, 364),
@@ -1173,13 +1173,7 @@ function OrionLib:MakeWindow(WindowConfig)
 	}, {
 		Create("UIGradient", {
 			Name = "Gradient",
-			Color = AccentSequence(CurrentAccent()),
-			Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 1),
-				NumberSequenceKeypoint.new(0.15, 0),
-				NumberSequenceKeypoint.new(0.85, 0),
-				NumberSequenceKeypoint.new(1, 1)
-			})
+			Color = AccentSequence(CurrentAccent())
 		})
 	})
 
@@ -1363,7 +1357,7 @@ function OrionLib:MakeWindow(WindowConfig)
 		local function GetElements(ItemParent)
 			local ElementFunction = {}
 			function ElementFunction:AddLabel(Text)
-				local LabelFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
+				local LabelFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 7), {
 					Size = UDim2.new(1, 0, 0, 30),
 					BackgroundTransparency = 0.7,
 					Parent = ItemParent
@@ -1387,7 +1381,7 @@ function OrionLib:MakeWindow(WindowConfig)
 				Text = Text or "Text"
 				Content = Content or "Content"
 
-				local ParagraphFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
+				local ParagraphFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 7), {
 					Size = UDim2.new(1, 0, 0, 30),
 					BackgroundTransparency = 0.7,
 					Parent = ItemParent
@@ -1433,7 +1427,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					Size = UDim2.new(1, 0, 1, 0)
 				})
 
-				local ButtonFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
+				local ButtonFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 7), {
 					Size = UDim2.new(1, 0, 0, 33),
 					Parent = ItemParent
 				}), {
@@ -1533,7 +1527,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					})
 				end
 
-				local ToggleFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
+				local ToggleFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 7), {
 					Size = UDim2.new(1, 0, 0, 38),
 					Parent = ItemParent
 				}), {
@@ -1672,7 +1666,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					SliderDrag
 				})
 
-				local SliderFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
+				local SliderFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 7), {
 					Size = UDim2.new(1, 0, 0, 65),
 					Parent = ItemParent
 				}), {
@@ -1972,7 +1966,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					Size = UDim2.new(1, 0, 1, 0)
 				})
 
-				local BindBox = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
+				local BindBox = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 7), {
 					Size = UDim2.new(0, 24, 0, 24),
 					Position = UDim2.new(1, -12, 0.5, 0),
 					AnchorPoint = Vector2.new(1, 0.5)
@@ -1986,7 +1980,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					}), "Text")
 				}), "Main")
 
-				local BindFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
+				local BindFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 7), {
 					Size = UDim2.new(1, 0, 0, 38),
 					Parent = ItemParent
 				}), {
@@ -2103,7 +2097,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					ClearTextOnFocus = false
 				}), "Text")
 
-				local TextContainer = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
+				local TextContainer = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 7), {
 					Size = UDim2.new(0, 24, 0, 24),
 					Position = UDim2.new(1, -12, 0.5, 0),
 					AnchorPoint = Vector2.new(1, 0.5)
@@ -2112,7 +2106,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					TextboxActual
 				}), "Main")
 
-				local TextboxFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
+				local TextboxFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 7), {
 					Size = UDim2.new(1, 0, 0, 38),
 					Parent = ItemParent
 				}), {
@@ -2230,7 +2224,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					Size = UDim2.new(1, 0, 1, 0)
 				})
 
-				local ColorpickerBox = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
+				local ColorpickerBox = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 7), {
 					Size = UDim2.new(0, 24, 0, 24),
 					Position = UDim2.new(1, -12, 0.5, 0),
 					AnchorPoint = Vector2.new(1, 0.5)
@@ -2238,7 +2232,7 @@ function OrionLib:MakeWindow(WindowConfig)
 					AddThemeObject(MakeElement("Stroke"), "Stroke")
 				}), "Main")
 
-				local ColorpickerFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
+				local ColorpickerFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 7), {
 					Size = UDim2.new(1, 0, 0, 38),
 					Parent = ItemParent
 				}), {
